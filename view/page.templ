@@ -1,0 +1,35 @@
+package view
+
+import "github.com/dgf/go-ssr-x/storage"
+import "fmt"
+import "time"
+
+templ page(title string) {
+	<!DOCTYPE html>
+	<html>
+		<header>
+			<title>{ title }</title>
+			<link rel="icon" href="assets/icon.svg" type="image/svg+xml"/>
+			<link rel="stylesheet" href="assets/css/tailwind.css"/>
+			<script src="assets/js/htmx.min.js"></script>
+		</header>
+		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white">
+			{ children... }
+		</body>
+	</html>
+}
+
+templ NotFound(method string, path string) {
+	@page(fmt.Sprintf("Not Found %v %v", method, path)) {
+		<h1>NotFound { method } { path }</h1>
+	}
+}
+
+templ Index(tasks []storage.Task) {
+	@page("My Tasks") {
+		<header class="container">
+			<h1 class="pb-2 font-bold text-center text-xl">My Tasks { time.Now().Format("2006-01-02") }</h1>
+		</header>
+		@TasksSection(tasks)
+	}
+}

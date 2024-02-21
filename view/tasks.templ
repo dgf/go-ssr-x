@@ -1,0 +1,106 @@
+package view
+
+import "github.com/dgf/go-ssr-x/storage"
+import "time"
+
+templ TaskCreateForm() {
+	<form
+		hx-post="/tasks"
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-disabled-elt="button"
+		class="container rounded-lg shadow-lg bg-stone-200 dark:bg-stone-800"
+	>
+		<div class="flex flex-col">
+			<label for="subject" class="my-2">Subject</label>
+			<input name="subject" required minlength="3" maxlength="255" class="dark:bg-stone-700 py-2 px-2"/>
+			<label for="dueDate" class="my-2">Due Date</label>
+			<input
+				name="dueDate"
+				type="date"
+				value={ time.Now().Add(3 * 24 * time.Hour).Format("2006-01-02") }
+				class="dark:bg-stone-700 py-2 px-2"
+			/>
+			<label for="description" class="my-2">Description</label>
+			<textarea name="description" rows="3" class="dark:bg-stone-700 py-2 px-2"></textarea>
+		</div>
+		<div class="flex flex-row justify-between py-3">
+			<div>
+				<button
+					id="add-task"
+					class="bg-sky-500/50 hover:bg-sky-500/100 disabled:opacity-90 px-3 py-1 rounded-full font-semibold shadow-sm"
+				>
+					Add Task
+				</button>
+				<button
+					hx-get="/tasks"
+					class="bg-stone-500/50 hover:bg-stone-500/100 px-3 py-1 rounded-full font-semibold shadow-sm"
+				>
+					Cancel
+				</button>
+			</div>
+			<div class="htmx-indicator px-2 py-1">Sending ...</div>
+		</div>
+	</form>
+}
+
+templ TaskRow(task storage.Task) {
+	<tr
+		id={ task.Id.String() }
+		data-created-at={ task.CreatedAt.Format(time.DateTime) }
+		class="even:bg-stone-300 dark:even:bg-stone-700"
+	>
+		<td class="proportional-nums">
+			{ dateTime(task.CreatedAt) }
+		</td>
+		<td class="proportional-nums">
+			{ date(task.DueDate) }
+		</td>
+		<td>{ task.Subject }</td>
+		<td></td>
+	</tr>
+}
+
+templ TaskRows(tasks []storage.Task) {
+	for _, task := range tasks {
+		@TaskRow(task)
+	}
+}
+
+templ TaskTable(tasks []storage.Task) {
+	<table class="w-full">
+		<thead class="font-semibold text-left bg-stone-400 dark:bg-stone-600">
+			<tr>
+				<th>CreatedAt</th>
+				<th>Due Date</th>
+				<th>Subject</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody id="task-rows">
+			@TaskRows(tasks)
+		</tbody>
+	</table>
+}
+
+templ TasksSection(tasks []storage.Task) {
+	<section hx-target="this" hx-swap="outerHTML" class="container rounded shadow-lg bg-stone-200 dark:bg-stone-800">
+		<div class="flex flex-row justify-between py-3">
+			<div class="py-1">
+				if len(tasks) > 0 {
+					TBD sort
+				}
+			</div>
+			<button
+				id="add-task"
+				hx-get="/tasks/new"
+				class="bg-sky-500/50 hover:bg-sky-500/100 disabled:opacity-90 px-3 py-1 rounded-full font-semibold shadow-sm"
+			>
+				Add Task
+			</button>
+		</div>
+		if len(tasks) > 0 {
+			@TaskTable(tasks)
+		}
+	</section>
+}
