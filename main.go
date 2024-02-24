@@ -19,7 +19,8 @@ var storage entity.Storage
 const defaultTaskOrder = "due-date-asc"
 
 func init() {
-	storage = entity.NewInMemory()
+	storage = entity.NewMemory()
+
 	for i := range 100 {
 		dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
 		subject := fmt.Sprintf("to do %v something", i+1)
