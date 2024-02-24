@@ -113,8 +113,8 @@ templ TasksSection(tasks []entity.Task, order string) {
 							class="rounded px-1 py-1 shadow-lg dark:bg-stone-700"
 						>
 							@optionList(order, []Option{
-								{value: "created-asc", label: "Newest (created)"},
-								{value: "created-desc", label: "Oldest (created)"},
+								{value: "created-desc", label: "Newest (created)"},
+								{value: "created-asc", label: "Oldest (created)"},
 								{value: "due-date-asc", label: "Urgent (due date)"},
 								{value: "due-date-desc", label: "Relaxed (due date)"},
 								{value: "subject-asc", label: "Subject (alphabetical)"},
