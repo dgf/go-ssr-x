@@ -1,6 +1,6 @@
 package view
 
-import "github.com/dgf/go-ssr-x/storage"
+import "github.com/dgf/go-ssr-x/entity"
 import "time"
 
 templ TaskCreateForm() {
@@ -9,32 +9,33 @@ templ TaskCreateForm() {
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
-		class="container rounded-lg shadow-lg bg-stone-200 dark:bg-stone-800"
+		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
 			<label for="subject" class="my-2">Subject</label>
-			<input name="subject" required minlength="3" maxlength="255" class="dark:bg-stone-700 py-2 px-2"/>
+			<input name="subject" required minlength="3" maxlength="255" class="px-2 py-2 dark:bg-stone-700"/>
 			<label for="dueDate" class="my-2">Due Date</label>
 			<input
 				name="dueDate"
 				type="date"
-				value={ time.Now().Add(3 * 24 * time.Hour).Format("2006-01-02") }
-				class="dark:bg-stone-700 py-2 px-2"
+				value={ time.Now().Add(3 * 24 * time.Hour).Format(time.DateOnly) }
+				min={ time.Now().Format(time.DateOnly) }
+				class="px-2 py-2 dark:bg-stone-700"
 			/>
 			<label for="description" class="my-2">Description</label>
-			<textarea name="description" rows="3" class="dark:bg-stone-700 py-2 px-2"></textarea>
+			<textarea name="description" rows="3" class="px-2 py-2 dark:bg-stone-700"></textarea>
 		</div>
 		<div class="flex flex-row justify-between py-3">
 			<div>
 				<button
 					id="add-task"
-					class="bg-sky-500/50 hover:bg-sky-500/100 disabled:opacity-90 px-3 py-1 rounded-full font-semibold shadow-sm"
+					class="rounded-full bg-sky-500/50 px-3 py-1 font-semibold shadow-sm hover:bg-sky-500/100 disabled:opacity-90"
 				>
 					Add Task
 				</button>
 				<button
 					hx-get="/tasks"
-					class="bg-stone-500/50 hover:bg-stone-500/100 px-3 py-1 rounded-full font-semibold shadow-sm"
+					class="rounded-full bg-stone-500/50 px-3 py-1 font-semibold shadow-sm hover:bg-stone-500/100"
 				>
 					Cancel
 				</button>
@@ -44,57 +45,89 @@ templ TaskCreateForm() {
 	</form>
 }
 
-templ TaskRow(task storage.Task) {
+templ TaskRow(task entity.Task) {
 	<tr
 		id={ task.Id.String() }
 		data-created-at={ task.CreatedAt.Format(time.DateTime) }
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
-		<td class="proportional-nums">
+		<td class="p-2 proportional-nums">
 			{ dateTime(task.CreatedAt) }
 		</td>
-		<td class="proportional-nums">
+		<td class="p-2 proportional-nums">
 			{ date(task.DueDate) }
 		</td>
-		<td>{ task.Subject }</td>
-		<td></td>
+		<td class="p-2">{ task.Subject }</td>
+		<td class="p-2">
+			<button
+				hx-delete={ "/tasks/" + task.Id.String() }
+				class="rounded-full bg-rose-500/50 px-2 py-1 font-semibold shadow-sm hover:bg-rose-500/100"
+			>
+				Delete
+			</button>
+		</td>
 	</tr>
 }
 
-templ TaskRows(tasks []storage.Task) {
+templ TaskRows(tasks []entity.Task) {
 	for _, task := range tasks {
 		@TaskRow(task)
 	}
 }
 
-templ TaskTable(tasks []storage.Task) {
-	<table class="w-full">
-		<thead class="font-semibold text-left bg-stone-400 dark:bg-stone-600">
-			<tr>
-				<th>CreatedAt</th>
-				<th>Due Date</th>
-				<th>Subject</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody id="task-rows">
-			@TaskRows(tasks)
-		</tbody>
-	</table>
+templ TaskTable(tasks []entity.Task) {
+	<div class="py-3">
+		<table class="w-full">
+			<thead class="bg-stone-400 text-left font-semibold dark:bg-stone-600">
+				<tr>
+					<th class="p-2">Created At</th>
+					<th class="p-2">Due Date</th>
+					<th class="p-2">Subject</th>
+					<th class="p-2"></th>
+				</tr>
+			</thead>
+			<tbody id="task-rows" hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+				@TaskRows(tasks)
+			</tbody>
+		</table>
+	</div>
 }
 
-templ TasksSection(tasks []storage.Task) {
-	<section hx-target="this" hx-swap="outerHTML" class="container rounded shadow-lg bg-stone-200 dark:bg-stone-800">
+templ TasksSection(tasks []entity.Task, order string) {
+	<section hx-target="this" hx-swap="outerHTML" class="container rounded bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row justify-between py-3">
 			<div class="py-1">
 				if len(tasks) > 0 {
-					TBD sort
+					filter
+				}
+			</div>
+			<div class="py-1">
+				if len(tasks) > 0 {
+					<form autocomplete="off">
+						<select
+							name="order"
+							hx-get="/tasks/rows"
+							hx-target="#task-rows"
+							hx-swap="innerHTML"
+							hx-indicator="#task-loading"
+							class="rounded px-1 py-1 shadow-lg dark:bg-stone-700"
+						>
+							@optionList(order, []Option{
+								{value: "created-asc", label: "Newest (created)"},
+								{value: "created-desc", label: "Oldest (created)"},
+								{value: "due-date-asc", label: "Urgent (due date)"},
+								{value: "due-date-desc", label: "Relaxed (due date)"},
+								{value: "subject-asc", label: "Subject (alphabetical)"},
+								{value: "subject-desc", label: "Subject (reverse)"},
+							})
+						</select>
+					</form>
 				}
 			</div>
 			<button
 				id="add-task"
 				hx-get="/tasks/new"
-				class="bg-sky-500/50 hover:bg-sky-500/100 disabled:opacity-90 px-3 py-1 rounded-full font-semibold shadow-sm"
+				class="rounded-full bg-sky-500/50 px-3 py-1 font-semibold shadow-sm hover:bg-sky-500/100 disabled:opacity-90"
 			>
 				Add Task
 			</button>

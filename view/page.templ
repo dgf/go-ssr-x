@@ -1,6 +1,6 @@
 package view
 
-import "github.com/dgf/go-ssr-x/storage"
+import "github.com/dgf/go-ssr-x/entity"
 import "fmt"
 import "time"
 
@@ -10,10 +10,13 @@ templ page(title string) {
 		<header>
 			<title>{ title }</title>
 			<link rel="icon" href="assets/icon.svg" type="image/svg+xml"/>
+			<link rel="stylesheet" href="assets/css/transitions.css"/>
 			<link rel="stylesheet" href="assets/css/tailwind.css"/>
 			<script src="assets/js/htmx.min.js"></script>
+			<script src="assets/js/response-targets.js"></script>
 		</header>
-		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white">
+		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-target-error="#any-error">
+			<div id="any-error"></div>
 			{ children... }
 		</body>
 	</html>
@@ -25,11 +28,11 @@ templ NotFound(method string, path string) {
 	}
 }
 
-templ Index(tasks []storage.Task) {
+templ Index(tasks []entity.Task, order string) {
 	@page("My Tasks") {
 		<header class="container">
-			<h1 class="pb-2 font-bold text-center text-xl">My Tasks { time.Now().Format("2006-01-02") }</h1>
+			<h1 class="pb-2 text-center text-xl font-bold">My Tasks { time.Now().Format(time.DateOnly) }</h1>
 		</header>
-		@TasksSection(tasks)
+		@TasksSection(tasks, order)
 	}
 }

@@ -1,0 +1,12 @@
+package view
+
+type Option struct {
+	value string
+	label string
+}
+
+templ optionList(selected string, options []Option) {
+	for _, option := range options {
+		<option value={ option.value } selected?={ selected==option.value }>{ option.label }</option>
+	}
+}

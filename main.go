@@ -4,21 +4,40 @@ import (
 	"embed"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/dgf/go-ssr-x/storage"
+	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/view"
+	"github.com/google/uuid"
 )
 
 //go:embed assets/*
 var assets embed.FS
+var storage entity.Storage
 
-func parseFormDate(date string) time.Time {
-	fmt.Println("check date", date)
-	if len(date) == 0 {
-		return time.Time{}
+const defaultTaskOrder = "due-date-asc"
+
+func init() {
+	storage = entity.NewInMemory()
+	for i := range 100 {
+		dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
+		subject := fmt.Sprintf("to do %v something", i+1)
+		desc := fmt.Sprintf("list:\n\n- %v", strings.Join([]string{"foo", "bar"}, "\n- "))
+		storage.AddTask(subject, time.Now().Add(dueInDays), desc)
 	}
-	t, err := time.Parse("2006-01-02", date)
+}
+
+func parseUUID(id string) uuid.UUID {
+	u, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil
+	}
+	return u
+}
+
+func parseDate(date string) time.Time {
+	t, err := time.Parse(time.DateOnly, date)
 	if err != nil {
 		return time.Time{}
 	}
@@ -26,29 +45,38 @@ func parseFormDate(date string) time.Time {
 }
 
 func main() {
-	s := storage.New()
-
 	http.Handle("/assets/", http.FileServer(http.FS(assets)))
 
 	http.HandleFunc("GET /tasks/new", func(w http.ResponseWriter, r *http.Request) {
 		view.TaskCreateForm().Render(r.Context(), w)
 	})
 
+	http.HandleFunc("GET /tasks/rows", func(w http.ResponseWriter, r *http.Request) {
+		view.TaskRows(storage.Tasks(r.URL.Query().Get("order"))).Render(r.Context(), w)
+	})
+
 	http.HandleFunc("GET /tasks", func(w http.ResponseWriter, r *http.Request) {
-		view.TasksSection(s.Tasks()).Render(r.Context(), w)
+		order := r.URL.Query().Get("order")
+		view.TasksSection(storage.Tasks(order), order).Render(r.Context(), w)
 	})
 
 	http.HandleFunc("POST /tasks", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		// time.Sleep(1 * time.Second)
 		dueDate := r.FormValue("dueDate")
-		s.AddTask(r.FormValue("subject"), parseFormDate(dueDate), r.FormValue("description"))
-		view.TasksSection(s.Tasks()).Render(r.Context(), w)
+		storage.AddTask(r.FormValue("subject"), parseDate(dueDate), r.FormValue("description"))
+
+		order := r.URL.Query().Get("order")
+		view.TasksSection(storage.Tasks(order), order).Render(r.Context(), w)
+	})
+
+	http.HandleFunc("DELETE /tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		storage.DeleteTask(parseUUID(r.PathValue("id")))
+		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			view.Index(s.Tasks()).Render(r.Context(), w)
+			view.Index(storage.Tasks(defaultTaskOrder), defaultTaskOrder).Render(r.Context(), w)
 			return
 		}
 

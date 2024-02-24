@@ -1,5 +1,6 @@
-htmx.min.js
-tailwind.css
+assets/css/tailwind.css
+assets/js/htmx.min.js
+assets/js/response-targets.js
 tmp/
 
 node_modules/

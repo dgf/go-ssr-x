@@ -9,6 +9,7 @@ init environment
 ```sh
 npm install # to install dependencies
 cp node_modules/htmx.org/dist/htmx.min.js assets/js
+cp node_modules/htmx.org/dist/ext/response-targets.js assets/js
 npm run build # to create CSS asset
 
 go install github.com/a-h/templ/cmd/templ@latest
