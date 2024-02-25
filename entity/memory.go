@@ -19,13 +19,6 @@ func NewMemory() Storage {
 	}
 }
 
-func (m *memory) DeleteTask(id uuid.UUID) {
-	m.Lock()
-	defer m.Unlock()
-
-	delete(m.tasks, id)
-}
-
 func (m *memory) AddTask(subject string, dueDate time.Time, description string) uuid.UUID {
 	m.Lock()
 	defer m.Unlock()
@@ -39,6 +32,18 @@ func (m *memory) AddTask(subject string, dueDate time.Time, description string) 
 		Desciption: description,
 	}
 	return id
+}
+
+func (m *memory) DeleteTask(id uuid.UUID) {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(m.tasks, id)
+}
+
+func (m *memory) HasTask(id uuid.UUID) bool {
+	_, ok := m.tasks[id]
+	return ok
 }
 
 func (m *memory) Tasks(order string) []Task {

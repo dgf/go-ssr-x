@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"net/http"
@@ -29,14 +30,6 @@ func init() {
 	}
 }
 
-func parseUUID(id string) uuid.UUID {
-	u, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.Nil
-	}
-	return u
-}
-
 func parseDate(date string) time.Time {
 	t, err := time.Parse(time.DateOnly, date)
 	if err != nil {
@@ -45,8 +38,18 @@ func parseDate(date string) time.Time {
 	return t
 }
 
+func clientError(ctx context.Context, w http.ResponseWriter, statusCode int, message string) {
+	w.Header().Add("HX-Reswap", "afterbegin")
+	w.WriteHeader(statusCode)
+	view.ClientErrorNotify(statusCode, message).Render(ctx, w)
+}
+
 func main() {
 	http.Handle("/assets/", http.FileServer(http.FS(assets)))
+
+	http.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+	})
 
 	http.HandleFunc("GET /tasks/new", func(w http.ResponseWriter, r *http.Request) {
 		view.TaskCreateForm().Render(r.Context(), w)
@@ -57,8 +60,7 @@ func main() {
 	})
 
 	http.HandleFunc("GET /tasks", func(w http.ResponseWriter, r *http.Request) {
-		order := r.URL.Query().Get("order")
-		view.TasksSection(storage.Tasks(order), order).Render(r.Context(), w)
+		view.TasksSection(storage.Tasks(defaultTaskOrder), defaultTaskOrder).Render(r.Context(), w)
 	})
 
 	http.HandleFunc("POST /tasks", func(w http.ResponseWriter, r *http.Request) {
@@ -71,18 +73,25 @@ func main() {
 	})
 
 	http.HandleFunc("DELETE /tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-		storage.DeleteTask(parseUUID(r.PathValue("id")))
-		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+		pid := r.PathValue("id")
+		if id, err := uuid.Parse(pid); err != nil {
+			clientError(r.Context(), w, http.StatusBadRequest, fmt.Sprintf("invalid param %q", pid))
+		} else if !storage.HasTask(id) {
+			clientError(r.Context(), w, http.StatusNotFound, fmt.Sprintf("task %q", id))
+		} else {
+			storage.DeleteTask(id)
+			w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+		}
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			view.Index(storage.Tasks(defaultTaskOrder), defaultTaskOrder).Render(r.Context(), w)
+			view.IndexPage(storage.Tasks(defaultTaskOrder), defaultTaskOrder).Render(r.Context(), w)
 			return
 		}
 
 		w.WriteHeader(404)
-		view.NotFound(r.Method, r.URL.Path).Render(r.Context(), w)
+		view.NotFoundPage(r.Method, r.URL.Path).Render(r.Context(), w)
 	})
 
 	fmt.Println("Listening on :3000")
