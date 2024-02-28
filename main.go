@@ -65,11 +65,13 @@ func main() {
 
 	http.HandleFunc("POST /tasks", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		dueDate := r.FormValue("dueDate")
-		storage.AddTask(r.FormValue("subject"), parseDate(dueDate), r.FormValue("description"))
+		dueDate := parseDate(r.FormValue("dueDate"))
+		subject := r.FormValue("subject")
+		description := r.FormValue("description")
 
-		order := r.URL.Query().Get("order")
-		view.TasksSection(storage.Tasks(order), order).Render(r.Context(), w)
+		id := storage.AddTask(subject, dueDate, description)
+		message := fmt.Sprintf("task %q created", id)
+		view.TasksSectionWithNotifyOOB(storage.Tasks(defaultTaskOrder), defaultTaskOrder, message).Render(r.Context(), w)
 	})
 
 	http.HandleFunc("DELETE /tasks/{id}", func(w http.ResponseWriter, r *http.Request) {

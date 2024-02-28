@@ -14,8 +14,9 @@ templ page(title string) {
 			<link rel="stylesheet" href="assets/css/tailwind.css"/>
 			<script src="assets/js/htmx.min.js"></script>
 			<script src="assets/js/response-targets.js"></script>
+			<script src="assets/js/remove-me.js"></script>
 		</header>
-		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets">
+		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets,remove-me">
 			{ children... }
 		</body>
 	</html>
