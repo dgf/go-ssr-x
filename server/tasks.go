@@ -18,6 +18,17 @@ func NewTaskServer(storage entity.Storage, defaultOrder string) *TaskServer {
 	return &TaskServer{storage: storage, defaultOrder: defaultOrder}
 }
 
+func (ts *TaskServer) Task(w http.ResponseWriter, r *http.Request) {
+	pid := r.PathValue("id")
+	if id, err := uuid.Parse(pid); err != nil {
+		clientError(r.Context(), w, http.StatusBadRequest, fmt.Sprintf("invalid param %q", pid))
+	} else if task, ok := ts.storage.Task(id); !ok {
+		clientError(r.Context(), w, http.StatusNotFound, fmt.Sprintf("task %q", id))
+	} else {
+		view.TaskDetails(task).Render(r.Context(), w)
+	}
+}
+
 func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) {
 	view.TaskCreateForm().Render(r.Context(), w)
 }

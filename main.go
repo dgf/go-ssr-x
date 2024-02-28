@@ -24,7 +24,7 @@ func init() {
 	for i := range 100 {
 		dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
 		subject := fmt.Sprintf("to do %v something", i+1)
-		desc := fmt.Sprintf("list:\n\n- %v", strings.Join([]string{"foo", "bar"}, "\n- "))
+		desc := fmt.Sprintf("# first\n## second\nsome `code` check\n```\nmore\ncode\n```\n\nlist:\n\n- %v", strings.Join([]string{"foo", "bar"}, "\n- "))
 		storage.AddTask(subject, time.Now().Add(dueInDays), desc)
 	}
 }
@@ -42,6 +42,7 @@ func main() {
 	mux.HandleFunc("GET /tasks/rows", taskServer.TaskRows)
 	mux.HandleFunc("GET /tasks", taskServer.TasksSection)
 	mux.HandleFunc("POST /tasks", taskServer.CreateTask)
+	mux.HandleFunc("GET /tasks/{id}", taskServer.Task)
 	mux.HandleFunc("DELETE /tasks/{id}", taskServer.DeleteTask)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

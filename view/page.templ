@@ -31,7 +31,7 @@ templ NotFoundPage(method string, path string) {
 templ IndexPage(tasks []entity.Task, order string) {
 	@page("My Tasks") {
 		<header class="container relative pb-3 pt-2">
-			<h1 class="pb-1 text-xl font-bold">My Tasks { time.Now().Format(time.DateOnly) }</h1>
+			<h1 class="pb-1 text-xl font-bold">My Tasks { date(time.Now()) }</h1>
 			<div id="snackbar" class="absolute right-2 top-1 flex w-2/3 flex-col items-end"></div>
 		</header>
 		<div hx-target-error="#snackbar">

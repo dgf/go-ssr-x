@@ -46,6 +46,11 @@ func (m *memory) HasTask(id uuid.UUID) bool {
 	return ok
 }
 
+func (m *memory) Task(id uuid.UUID) (Task, bool) {
+	t, ok := m.tasks[id]
+	return t, ok
+}
+
 func (m *memory) Tasks(order string) []Task {
 	m.RLock()
 	defer m.RUnlock()

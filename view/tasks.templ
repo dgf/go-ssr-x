@@ -52,6 +52,27 @@ templ TaskCreateForm() {
 	</form>
 }
 
+templ TaskDetails(task entity.Task) {
+	<section
+		hx-target="this"
+		hx-swap="outerHTML"
+		class="container rounded-lg bg-stone-200 py-2 shadow-lg dark:bg-stone-800"
+	>
+		<div class="grid grid-cols-[1fr_3fr] gap-2">
+			<div>Subject:</div>
+			<div>{ task.Subject }</div>
+			<div>Created At:</div>
+			<div>{ dateTime(task.CreatedAt) }</div>
+			<div>Due Date:</div>
+			<div>{ date(task.DueDate) }</div>
+			<div>Description:</div>
+			<div class="prose prose-sm dark:prose-invert">
+				@markdown(task.Desciption)
+			</div>
+		</div>
+	</section>
+}
+
 templ TaskRow(task entity.Task) {
 	<tr
 		id={ task.Id.String() }
@@ -65,9 +86,18 @@ templ TaskRow(task entity.Task) {
 			{ date(task.DueDate) }
 		</td>
 		<td class="p-2">{ task.Subject }</td>
-		<td class="p-2">
+		<td class="flex gap-1 p-2">
+			<button
+				hx-get={ "tasks/" + task.Id.String() }
+				class="h-8 w-8 rounded-full bg-sky-500 px-2 py-1 shadow-lg hover:bg-sky-400 dark:bg-sky-800 dark:hover:bg-sky-700"
+			>
+				@magnify()
+			</button>
 			<button
 				hx-delete={ "tasks/" + task.Id.String() }
+				hx-confirm="Are you sure?"
+				hx-target="closest tr"
+				hx-swap="outerHTML swap:1s"
 				class="h-8 w-8 rounded-full bg-orange-400 px-2 py-1 shadow-lg hover:bg-orange-300 dark:bg-rose-700 dark:hover:bg-rose-600"
 			>
 				@trash()
@@ -93,7 +123,7 @@ templ TaskTable(tasks []entity.Task) {
 					<th class="p-2"></th>
 				</tr>
 			</thead>
-			<tbody id="task-rows" hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+			<tbody id="task-rows">
 				@TaskRows(tasks)
 			</tbody>
 		</table>
