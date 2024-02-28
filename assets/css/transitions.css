@@ -1,4 +1,5 @@
 .client-error.htmx-swapping,
+.client-notify.htmx-swapping,
 tr.htmx-swapping td {
   opacity: 0;
   transition: opacity 1s ease-out;
