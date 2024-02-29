@@ -24,7 +24,7 @@ templ page(title string) {
 
 templ NotFoundPage(method string, path string) {
 	@page(fmt.Sprintf("Not Found %v %v", method, path)) {
-		<h1>NotFound { method } { path }</h1>
+		<h1>Not Found { method } { path }</h1>
 	}
 }
 

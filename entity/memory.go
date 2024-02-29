@@ -34,19 +34,10 @@ func (m *memory) AddTask(subject string, dueDate time.Time, description string) 
 	return id
 }
 
-func (m *memory) DeleteTask(id uuid.UUID) {
-	m.Lock()
-	defer m.Unlock()
-
-	delete(m.tasks, id)
-}
-
-func (m *memory) HasTask(id uuid.UUID) bool {
-	_, ok := m.tasks[id]
-	return ok
-}
-
 func (m *memory) Task(id uuid.UUID) (Task, bool) {
+	m.RLock()
+	defer m.RUnlock()
+
 	t, ok := m.tasks[id]
 	return t, ok
 }
@@ -62,4 +53,26 @@ func (m *memory) Tasks(order string) []Task {
 
 	slices.SortStableFunc(p, TaskOrderFunc(order))
 	return p
+}
+
+func (m *memory) DeleteTask(id uuid.UUID) {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(m.tasks, id)
+}
+
+func (m *memory) UpdateTask(id uuid.UUID, subject string, dueDate time.Time, description string) (Task, bool) {
+	m.Lock()
+	defer m.Unlock()
+
+	if t, ok := m.tasks[id]; !ok {
+		return t, ok
+	} else {
+		t.Subject = subject
+		t.DueDate = dueDate
+		t.Desciption = description
+		m.tasks[id] = t
+		return t, ok
+	}
 }

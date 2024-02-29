@@ -42,8 +42,10 @@ func main() {
 	mux.HandleFunc("GET /tasks/rows", taskServer.TaskRows)
 	mux.HandleFunc("GET /tasks", taskServer.TasksSection)
 	mux.HandleFunc("POST /tasks", taskServer.CreateTask)
-	mux.HandleFunc("GET /tasks/{id}", taskServer.Task)
+	mux.HandleFunc("GET /tasks/{id}", taskServer.ShowTask)
+	mux.HandleFunc("GET /tasks/{id}/edit", taskServer.EditTask)
 	mux.HandleFunc("DELETE /tasks/{id}", taskServer.DeleteTask)
+	mux.HandleFunc("PUT /tasks/{id}", taskServer.UpdateTask)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
