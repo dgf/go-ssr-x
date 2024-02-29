@@ -30,3 +30,15 @@ watch `templ` and Golang changes to restart the server
 ```sh
 air
 ```
+
+## Features (non functional techy stuff)
+
+- [x] server side rendering (Golang templ)
+- [x] hypermedia driven client interaction (htmx)
+- [x] notification snackbar (htmx OOB and extension)
+- [x] Markdown rending and styling (goldmark and tailwind)
+- [x] table sorting
+- [ ] table paging
+- [ ] client side routing
+- [ ] i18n - translate template labels and notification messages
+- [ ] l10n - display dates in localized format
