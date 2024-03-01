@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/server"
 	"github.com/dgf/go-ssr-x/view"
@@ -14,13 +15,20 @@ import (
 
 //go:embed assets/*
 var assets embed.FS
-var storage entity.Storage
 
-const defaultTaskOrder = "due-date-asc"
+var (
+	mux     *http.ServeMux
+	storage entity.Storage
+)
 
 func init() {
-	storage = entity.NewMemory()
+	mux = http.NewServeMux()
+	mux.Handle("/assets/", http.FileServer(http.FS(assets)))
+	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+	})
 
+	storage = entity.NewMemory()
 	for i := range 100 {
 		dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
 		subject := fmt.Sprintf("to do %v something", i+1)
@@ -29,27 +37,32 @@ func init() {
 	}
 }
 
-func main() {
-	mux := http.NewServeMux()
-	taskServer := server.NewTaskServer(storage, defaultTaskOrder)
-
-	mux.Handle("/assets/", http.FileServer(http.FS(assets)))
-	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
+	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		component := handler(w, r)
+		if r.Header.Get("HX-Request") == "true" {
+			component.Render(r.Context(), w)
+		} else {
+			view.Page(component).Render(r.Context(), w)
+		}
 	})
+}
 
-	mux.HandleFunc("GET /tasks/new", taskServer.TaskCreateForm)
-	mux.HandleFunc("GET /tasks/rows", taskServer.TaskRows)
-	mux.HandleFunc("GET /tasks", taskServer.TasksSection)
-	mux.HandleFunc("POST /tasks", taskServer.CreateTask)
-	mux.HandleFunc("GET /tasks/{id}", taskServer.ShowTask)
-	mux.HandleFunc("GET /tasks/{id}/edit", taskServer.EditTask)
-	mux.HandleFunc("DELETE /tasks/{id}", taskServer.DeleteTask)
-	mux.HandleFunc("PUT /tasks/{id}", taskServer.UpdateTask)
+func main() {
+	taskServer := server.NewTaskServer(storage)
+
+	route("GET /tasks/new", taskServer.TaskCreateForm)
+	route("GET /tasks/rows", taskServer.TaskRows)
+	route("GET /tasks", taskServer.TasksSection)
+	route("POST /tasks", taskServer.CreateTask)
+	route("GET /tasks/{id}", taskServer.ShowTask)
+	route("GET /tasks/{id}/edit", taskServer.EditTask)
+	route("DELETE /tasks/{id}", taskServer.DeleteTask)
+	route("PUT /tasks/{id}", taskServer.UpdateTask)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			view.IndexPage(storage.Tasks(defaultTaskOrder), defaultTaskOrder).Render(r.Context(), w)
+			view.Page(taskServer.TasksSection(w, r)).Render(r.Context(), w)
 			return
 		}
 

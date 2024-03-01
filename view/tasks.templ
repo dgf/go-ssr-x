@@ -5,7 +5,7 @@ import "time"
 
 templ TaskCreateForm() {
 	<form
-		hx-post="tasks"
+		hx-post="/tasks"
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
@@ -40,7 +40,7 @@ templ TaskCreateForm() {
 					Create
 				</button>
 				<button
-					hx-get="tasks"
+					hx-get="/tasks"
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
 					Cancel
@@ -53,7 +53,7 @@ templ TaskCreateForm() {
 
 templ TaskEditForm(task entity.Task) {
 	<form
-		hx-put={ "tasks/" + task.Id.String() }
+		hx-put={ "/tasks/" + task.Id.String() }
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
@@ -91,7 +91,7 @@ templ TaskEditForm(task entity.Task) {
 					Save
 				</button>
 				<button
-					hx-get={ "tasks/" + task.Id.String() }
+					hx-get={ "/tasks/" + task.Id.String() }
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
 					Cancel
@@ -123,13 +123,13 @@ templ TaskDetails(task entity.Task) {
 		<div class="flex flex-row justify-between py-3">
 			<div hx-disabled-elt="button">
 				<button
-					hx-get={ "tasks/" + task.Id.String() + "/edit" }
+					hx-get={ "/tasks/" + task.Id.String() + "/edit" }
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
 					Edit
 				</button>
 				<button
-					hx-get="tasks"
+					hx-get="/tasks"
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-90 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
 					Back
@@ -160,13 +160,13 @@ templ TaskRow(task entity.Task) {
 		<td class="p-2">{ task.Subject }</td>
 		<td class="flex gap-1 p-2">
 			<button
-				hx-get={ "tasks/" + task.Id.String() }
+				hx-get={ "/tasks/" + task.Id.String() }
 				class="h-8 w-8 rounded-full bg-sky-500 px-2 py-1 shadow-lg hover:bg-sky-400 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
 				@magnify()
 			</button>
 			<button
-				hx-delete={ "tasks/" + task.Id.String() }
+				hx-delete={ "/tasks/" + task.Id.String() }
 				hx-confirm="Are you sure?"
 				hx-target="closest tr"
 				hx-swap="outerHTML swap:1s"
@@ -202,7 +202,7 @@ templ TaskTable(tasks []entity.Task) {
 	</div>
 }
 
-templ TasksSection(tasks []entity.Task, order string) {
+templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<div class="py-1">
@@ -215,13 +215,13 @@ templ TasksSection(tasks []entity.Task, order string) {
 					<form autocomplete="off">
 						<select
 							name="order"
-							hx-get="tasks/rows"
+							hx-get="/tasks/rows"
 							hx-target="#task-rows"
 							hx-swap="innerHTML"
 							hx-indicator="#task-loading"
 							class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 						>
-							@optionList(order, []Option{
+							@optionList(order.String(), []Option{
 								{value: "created-desc", label: "Newest (created)"},
 								{value: "created-asc", label: "Oldest (created)"},
 								{value: "due-date-asc", label: "Urgent (due date)"},
@@ -234,7 +234,7 @@ templ TasksSection(tasks []entity.Task, order string) {
 				}
 			</div>
 			<button
-				hx-get="tasks/new"
+				hx-get="/tasks/new"
 				class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
 				Add
@@ -246,7 +246,7 @@ templ TasksSection(tasks []entity.Task, order string) {
 	</section>
 }
 
-templ TasksSectionWithNotifyOOB(tasks []entity.Task, order string, message string) {
+templ TasksSectionWithNotifyOOB(tasks []entity.Task, order entity.TaskOrder, message string) {
 	@SuccessNotify(message)
 	@TasksSection(tasks, order)
 }

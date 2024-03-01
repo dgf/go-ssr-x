@@ -2,6 +2,7 @@ package entity
 
 import (
 	"cmp"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,29 +17,62 @@ type Task struct {
 	Id         uuid.UUID
 }
 
-func TaskOrderFunc(order string) func(i, j Task) int {
+type TaskOrder int64
+
+const (
+	CreatedAtAsc TaskOrder = iota
+	CreatedAtDesc
+	DueDateAsc
+	DueDateDesc
+	SubjectAsc
+	SubjectDesc
+	DefaultTaskOrder = DueDateAsc
+)
+
+var taskOrderLabels = []string{
+	"created-desc",
+	"created-asc",
+	"due-date-asc",
+	"due-date-desc",
+	"subject-asc",
+	"subject-desc",
+}
+
+func (o TaskOrder) String() string {
+	return taskOrderLabels[o]
+}
+
+func TaskOrderOrDefault(order string) TaskOrder {
+	o := slices.Index(taskOrderLabels, order)
+	if o == -1 {
+		return DefaultTaskOrder
+	}
+	return TaskOrder(o)
+}
+
+func taskOrderFunc(order TaskOrder) func(i, j Task) int {
 	switch order {
-	case "created-asc":
+	case CreatedAtAsc:
 		return func(i, j Task) int {
 			return cmp.Compare(i.CreatedAt.String(), j.CreatedAt.String())
 		}
-	case "created-desc":
+	case CreatedAtDesc:
 		return func(i, j Task) int {
 			return cmp.Compare(j.CreatedAt.String(), i.CreatedAt.String())
 		}
-	case "due-date-asc":
+	case DueDateAsc:
 		return func(i, j Task) int {
 			return cmp.Compare(i.DueDate.String(), j.DueDate.String())
 		}
-	case "due-date-desc":
+	case DueDateDesc:
 		return func(i, j Task) int {
 			return cmp.Compare(j.DueDate.String(), i.DueDate.String())
 		}
-	case "subject-asc":
+	case SubjectAsc:
 		return func(i, j Task) int {
 			return cmp.Compare(i.Subject, j.Subject)
 		}
-	case "subject-desc":
+	case SubjectDesc:
 		return func(i, j Task) int {
 			return cmp.Compare(j.Subject, i.Subject)
 		}

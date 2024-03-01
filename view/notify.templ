@@ -6,7 +6,7 @@ templ SuccessNotify(message string) {
 	<div id="snackbar">
 		<div
 			remove-me="3s"
-			hx-delete="clear"
+			hx-delete="/clear"
 			hx-target="this"
 			hx-swap="outerHTML swap:1s"
 			class="client-notify my-1 flex rounded-lg bg-lime-400 px-2 py-1 shadow-lg dark:bg-lime-800"
@@ -21,7 +21,7 @@ templ SuccessNotify(message string) {
 
 templ ClientErrorNotify(statusCode int, message string) {
 	<div
-		hx-delete="clear"
+		hx-delete="/clear"
 		hx-target="this"
 		hx-swap="outerHTML swap:1s"
 		class="client-error my-1 flex rounded-lg bg-yellow-300 px-2 py-1 shadow-lg dark:bg-yellow-700"

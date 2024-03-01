@@ -1,6 +1,5 @@
 package view
 
-import "github.com/dgf/go-ssr-x/entity"
 import "fmt"
 import "time"
 
@@ -9,14 +8,14 @@ templ page(title string) {
 	<html>
 		<header>
 			<title>{ title }</title>
-			<link rel="icon" href="assets/icon.svg" type="image/svg+xml"/>
-			<link rel="stylesheet" href="assets/css/transitions.css"/>
-			<link rel="stylesheet" href="assets/css/tailwind.css"/>
-			<script src="assets/js/htmx.min.js"></script>
-			<script src="assets/js/response-targets.js"></script>
-			<script src="assets/js/remove-me.js"></script>
+			<link rel="icon" href="/assets/icon.svg" type="image/svg+xml"/>
+			<link rel="stylesheet" href="/assets/css/transitions.css"/>
+			<link rel="stylesheet" href="/assets/css/tailwind.css"/>
+			<script src="/assets/js/htmx.min.js"></script>
+			<script src="/assets/js/response-targets.js"></script>
+			<script src="/assets/js/remove-me.js"></script>
 		</header>
-		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets,remove-me">
+		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets,remove-me" hx-push-url="true">
 			{ children... }
 		</body>
 	</html>
@@ -28,14 +27,14 @@ templ NotFoundPage(method string, path string) {
 	}
 }
 
-templ IndexPage(tasks []entity.Task, order string) {
+templ Page(content templ.Component) {
 	@page("My Tasks") {
 		<header class="container relative pb-3 pt-2">
 			<h1 class="pb-1 text-xl font-bold">My Tasks { date(time.Now()) }</h1>
 			<div id="snackbar" class="absolute right-2 top-1 flex w-2/3 flex-col items-end"></div>
 		</header>
-		<div hx-target-error="#snackbar">
-			@TasksSection(tasks, order)
+		<div hx-target-error="#snackbar" hx-history="false">
+			@content
 		</div>
 	}
 }

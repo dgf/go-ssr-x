@@ -42,7 +42,7 @@ func (m *memory) Task(id uuid.UUID) (Task, bool) {
 	return t, ok
 }
 
-func (m *memory) Tasks(order string) []Task {
+func (m *memory) Tasks(order TaskOrder) []Task {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -51,7 +51,7 @@ func (m *memory) Tasks(order string) []Task {
 		p = append(p, t)
 	}
 
-	slices.SortStableFunc(p, TaskOrderFunc(order))
+	slices.SortStableFunc(p, taskOrderFunc(order))
 	return p
 }
 

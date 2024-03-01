@@ -39,6 +39,7 @@ air
 - [x] Markdown rending and styling (goldmark and tailwind)
 - [x] table sorting
 - [ ] table paging
-- [ ] client side routing
+- [x] Golang enum string mapping
+- [x] browser history update and reload of subpages
 - [ ] i18n - translate template labels and notification messages
 - [ ] l10n - display dates in localized format
