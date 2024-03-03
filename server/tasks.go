@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+	"io"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -51,7 +53,10 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 	description := r.FormValue("description")
 
 	id := ts.storage.AddTask(subject, dueDate, description)
-	return view.TasksSectionWithNotifyOOB(ts.storage.Tasks(entity.DefaultTaskOrder), entity.DefaultTaskOrder, "ok_task_created", map[string]string{"id": id.String()})
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		view.SuccessNotify("ok_task_created", map[string]string{"id": id.String()}).Render(ctx, w)
+		return view.TasksSection(ts.storage.Tasks(entity.DefaultTaskOrder), entity.DefaultTaskOrder).Render(ctx, w)
+	})
 }
 
 func (ts *TaskServer) ShowTask(w http.ResponseWriter, r *http.Request) templ.Component {
@@ -84,7 +89,10 @@ func (ts *TaskServer) UpdateTask(w http.ResponseWriter, r *http.Request) templ.C
 		if updated, ok := ts.storage.UpdateTask(task.Id, subject, dueDate, description); !ok {
 			return clientError(w, http.StatusConflict, "conflict_task_update", nil)
 		} else {
-			return view.TaskDetailsWithNotifyOOB(updated, "ok_task_updated", map[string]string{"id": string(updated.Id.String())})
+			return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+				view.SuccessNotify("ok_task_updated", map[string]string{"id": string(updated.Id.String())}).Render(ctx, w)
+				return view.TaskDetails(updated).Render(ctx, w)
+			})
 		}
 	})
 }

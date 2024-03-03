@@ -139,11 +139,6 @@ templ TaskDetails(task entity.Task) {
 	</section>
 }
 
-templ TaskDetailsWithNotifyOOB(task entity.Task, messageID string, data map[string]string) {
-	@SuccessNotify(messageID, data)
-	@TaskDetails(task)
-}
-
 templ TaskRow(task entity.Task) {
 	<tr
 		id={ task.Id.String() }
@@ -243,9 +238,4 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 			@TaskTable(tasks)
 		}
 	</section>
-}
-
-templ TasksSectionWithNotifyOOB(tasks []entity.Task, order entity.TaskOrder, messageID string, data map[string]string) {
-	@SuccessNotify(messageID, data)
-	@TasksSection(tasks, order)
 }
