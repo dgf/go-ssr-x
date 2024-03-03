@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -26,6 +27,8 @@ var (
 )
 
 func init() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
 	mux = http.NewServeMux()
 	mux.Handle("/assets/", http.FileServer(http.FS(assets)))
 	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
