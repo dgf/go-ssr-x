@@ -10,6 +10,7 @@ templ page(title string) {
 			<link rel="icon" href="/assets/icon.svg" type="image/svg+xml"/>
 			<link rel="stylesheet" href="/assets/css/transitions.css"/>
 			<link rel="stylesheet" href="/assets/css/tailwind.css"/>
+			<meta name="htmx-config" content='{"refreshOnHistoryMiss":"true"}'/>
 			<script src="/assets/js/htmx.min.js"></script>
 			<script src="/assets/js/response-targets.js"></script>
 			<script src="/assets/js/remove-me.js"></script>
@@ -26,7 +27,7 @@ templ Page(content templ.Component) {
 			<h1 class="pb-1 text-xl font-bold">{ Translate(ctx, "page_title") } { date(time.Now()) }</h1>
 			<div id="snackbar" class="absolute right-2 top-1 flex w-2/3 flex-col items-end"></div>
 		</header>
-		<div hx-target-error="#snackbar" hx-history="false">
+		<div hx-target-error="#snackbar">
 			@content
 		</div>
 	}

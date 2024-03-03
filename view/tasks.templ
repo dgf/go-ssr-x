@@ -58,6 +58,7 @@ templ TaskEditForm(task entity.Task) {
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
 		hx-disabled-elt="button"
+		hx-history="false"
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
@@ -106,6 +107,7 @@ templ TaskDetails(task entity.Task) {
 	<section
 		hx-target="this"
 		hx-swap="outerHTML"
+		hx-history="false"
 		class="container rounded-lg bg-stone-200 py-2 shadow-lg dark:bg-stone-800"
 	>
 		<div class="grid grid-cols-[1fr_3fr] gap-2">
@@ -143,6 +145,7 @@ templ TaskRow(task entity.Task) {
 	<tr
 		id={ task.Id.String() }
 		data-created-at={ task.CreatedAt.Format(time.DateTime) }
+		hx-history="false"
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
 		<td class="p-2 proportional-nums">

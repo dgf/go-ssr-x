@@ -59,5 +59,5 @@ goi18n merge active.*.toml
 - [x] Golang enum string mapping
 - [x] browser history update and reload of subpages
 - [ ] JSON logging (Golang slog)
-- [ ] i18n - translate template labels and notification messages
+- [x] i18n - translate template labels and notification messages
 - [ ] l10n - display dates in localized format
