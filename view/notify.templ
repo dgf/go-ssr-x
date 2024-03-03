@@ -1,8 +1,6 @@
 package view
 
-import "net/http"
-
-templ SuccessNotify(message string) {
+templ SuccessNotify(messageID string, data map[string]string) {
 	<div id="snackbar">
 		<div
 			remove-me="3s"
@@ -11,7 +9,7 @@ templ SuccessNotify(message string) {
 			hx-swap="outerHTML swap:1s"
 			class="client-notify my-1 flex rounded-lg bg-lime-400 px-2 py-1 shadow-lg dark:bg-lime-800"
 		>
-			<div>{ message }</div>
+			<div>{ TranslateData(ctx, messageID, data) }</div>
 			<button class="h-6 w-6 flex-none pl-1">
 				@xCircle()
 			</button>
@@ -19,14 +17,14 @@ templ SuccessNotify(message string) {
 	</div>
 }
 
-templ ClientErrorNotify(statusCode int, message string) {
+templ ClientErrorNotify(messageID string, data map[string]string) {
 	<div
 		hx-delete="/clear"
 		hx-target="this"
 		hx-swap="outerHTML swap:1s"
 		class="client-error my-1 flex rounded-lg bg-yellow-300 px-2 py-1 shadow-lg dark:bg-yellow-700"
 	>
-		<div class="flex-auto">Client Error { http.StatusText(statusCode) }: { message }</div>
+		<div class="flex-auto">{ TranslateData(ctx, messageID, data) }</div>
 		<button class="h-6 w-6 flex-none pl-1">
 			@xCircle()
 		</button>

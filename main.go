@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -75,6 +76,6 @@ func main() {
 		return view.NotFound(r.Method, r.URL.Path)
 	})
 
-	fmt.Println("Listening on :3000")
+	slog.Info("Listening on :3000")
 	http.ListenAndServe("0.0.0.0:3000", mux)
 }

@@ -139,8 +139,8 @@ templ TaskDetails(task entity.Task) {
 	</section>
 }
 
-templ TaskDetailsWithNotifyOOB(task entity.Task, message string) {
-	@SuccessNotify(message)
+templ TaskDetailsWithNotifyOOB(task entity.Task, messageID string, data map[string]string) {
+	@SuccessNotify(messageID, data)
 	@TaskDetails(task)
 }
 
@@ -245,7 +245,7 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 	</section>
 }
 
-templ TasksSectionWithNotifyOOB(tasks []entity.Task, order entity.TaskOrder, message string) {
-	@SuccessNotify(message)
+templ TasksSectionWithNotifyOOB(tasks []entity.Task, order entity.TaskOrder, messageID string, data map[string]string) {
+	@SuccessNotify(messageID, data)
 	@TasksSection(tasks, order)
 }

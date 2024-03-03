@@ -1,6 +1,26 @@
-[error_not_found]
-hash = "sha1-4067a17349eddfc04510bd1a195c9366af3bb067"
-other = "Nicht gefunden {{.Method}} {{.Path}}"
+[bad_request_path_param]
+hash = "sha1-6b8e6ca724fb3bdbea4d5ad3d913f4fd3b851db4"
+other = "Falsche Anfrage, ungültiger Pfadparameter '{{.param}}' Wert '{{.value}}'"
+
+[conflict_task_update]
+hash = "sha1-bbbb7a8472fa5a7597b5388c18362d437469cc9b"
+other = "Die Aktualisierung der Aufgabe ist aufgrund eines Konflikts fehlgeschlagen. Bitte versuche es erneut."
+
+[not_found_path]
+hash = "sha1-78eff768fd13def4a68379c223f8b9289160cf6c"
+other = "Ressource nicht gefunden '{{.method}} {{.path}}'"
+
+[not_found_task]
+hash = "sha1-9e277a822fff6cf58eb0cdd0b01a4a1fd2e2a0cd"
+other = "Aufgabe '{{.id}}' nicht gefunden."
+
+[ok_task_created]
+hash = "sha1-73c8322aff8426f1b92f603fd88dd2a4b9b5863e"
+other = "Aufgabe '{{.id}}' erstellt."
+
+[ok_task_updated]
+hash = "sha1-f2fb86ee8229526423409196f52eb7fecc9f9204"
+other = "Aufgabe '{{.id}}' aktualisiert."
 
 [page_title]
 hash = "sha1-54bd9e0bc82a8befa22bcd37c15fbabaaad4172c"

@@ -34,7 +34,12 @@ func init() {
 
 	messages := [...]*i18n.Message{
 		{ID: "page_title", Other: "My Tasks"},
-		{ID: "error_not_found", Other: "Not Found {{.Method}} {{.Path}}"},
+		{ID: "bad_request_path_param", Other: "Bad Request, invalid path param '{{.param}}' value '{{.value}}'"},
+		{ID: "conflict_task_update", Other: "The task update has failed due to an editing conflict. Please try the update again."},
+		{ID: "not_found_path", Other: "Not Found '{{.method}} {{.path}}'"},
+		{ID: "not_found_task", Other: "Task '{{.id}}' not found."},
+		{ID: "ok_task_created", Other: "Task '{{.id}}' created."},
+		{ID: "ok_task_updated", Other: "Task '{{.id}}' updated."},
 		{ID: "task_subject", Other: "subject"},
 		{ID: "task_due_date", Other: "due date"},
 		{ID: "task_description", Other: "description"},
