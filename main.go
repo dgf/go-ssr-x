@@ -73,7 +73,7 @@ func main() {
 		}
 
 		w.WriteHeader(404)
-		return view.NotFound(r.Method, r.URL.Path)
+		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 
 	slog.Info("Listening on :3000")

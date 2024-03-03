@@ -2,6 +2,10 @@
 hash = "sha1-6b8e6ca724fb3bdbea4d5ad3d913f4fd3b851db4"
 other = "Falsche Anfrage, ungültiger Pfadparameter '{{.param}}' Wert '{{.value}}'"
 
+[client_error]
+hash = "sha1-3f7c222c5540d4e9d8d5db302ce71062e6943bcf"
+other = "Aufruffehler"
+
 [conflict_task_update]
 hash = "sha1-bbbb7a8472fa5a7597b5388c18362d437469cc9b"
 other = "Die Aktualisierung der Aufgabe ist aufgrund eines Konflikts fehlgeschlagen. Bitte versuche es erneut."

@@ -22,9 +22,9 @@ func NewTaskServer(storage entity.Storage) *TaskServer {
 func (ts *TaskServer) handleTask(w http.ResponseWriter, r *http.Request, handler func(task entity.Task) templ.Component) templ.Component {
 	pid := r.PathValue("id")
 	if id, err := uuid.Parse(pid); err != nil {
-		return clientError(w, http.StatusBadRequest, "bad_request_path_param", map[string]string{"param": "id", "value": pid})
+		return clientError(w, r, http.StatusBadRequest, "bad_request_path_param", map[string]string{"param": "id", "value": pid})
 	} else if task, ok := ts.storage.Task(id); !ok {
-		return clientError(w, http.StatusNotFound, "not_found_task", map[string]string{"id": pid})
+		return clientError(w, r, http.StatusNotFound, "not_found_task", map[string]string{"id": pid})
 	} else {
 		return handler(task)
 	}
@@ -87,7 +87,7 @@ func (ts *TaskServer) UpdateTask(w http.ResponseWriter, r *http.Request) templ.C
 
 	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
 		if updated, ok := ts.storage.UpdateTask(task.Id, subject, dueDate, description); !ok {
-			return clientError(w, http.StatusConflict, "conflict_task_update", nil)
+			return clientError(w, r, http.StatusConflict, "conflict_task_update", nil)
 		} else {
 			return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 				view.SuccessNotify("ok_task_updated", map[string]string{"id": string(updated.Id.String())}).Render(ctx, w)
