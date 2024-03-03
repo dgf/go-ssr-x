@@ -1,0 +1,83 @@
+[error_not_found]
+hash = "sha1-4067a17349eddfc04510bd1a195c9366af3bb067"
+other = "Nicht gefunden {{.Method}} {{.Path}}"
+
+[page_title]
+hash = "sha1-54bd9e0bc82a8befa22bcd37c15fbabaaad4172c"
+other = "Meine Aufgaben"
+
+[task_add]
+hash = "sha1-58d1bbce297de3c304a9fefc3b483181872a5c6b"
+other = "hinzufügen"
+
+[task_back]
+hash = "sha1-61bb8d29b5be7db307cb29005bff087ebe300454"
+other = "zurück"
+
+[task_cancel]
+hash = "sha1-4fd0653c4f2aef3b19a3c145bbdc5f4740715a09"
+other = "abbrechen"
+
+[task_confirm_delete]
+hash = "sha1-410bf23a3f080def9c7a976a16305bcde7943ed1"
+other = "Bist du sicher?"
+
+[task_create]
+hash = "sha1-9b7c68a918b17eb053809b198d7c9abfc142f30a"
+other = "erstellen"
+
+[task_created_at]
+hash = "sha1-65a65008cfbc3efe164ed60d1407a379e599548e"
+other = "erstellt am"
+
+[task_creating]
+hash = "sha1-ad4e9a4e42b99d945f972bab5a2eff694d283793"
+other = "erstelle"
+
+[task_description]
+hash = "sha1-cb329146a0dd0d566b0628744d67936558741ffa"
+other = "Beschreibung"
+
+[task_due_date]
+hash = "sha1-798792a2ab3829f2a2d678c33212a45640fa6779"
+other = "fällig am"
+
+[task_edit]
+hash = "sha1-9ead47a82a0d25985f22f10651d1f93b3abba317"
+other = "bearbeiten"
+
+[task_order_created_asc]
+hash = "sha1-f1bf0887867ecfed5619294b28ae6c4909453baf"
+other = "Älteste (Erstellungsdatum)"
+
+[task_order_created_desc]
+hash = "sha1-3ba46ad1afbb31878263bf442cb228752d3792b8"
+other = "Neuste (Erstellungsdatum)"
+
+[task_order_due_date_asc]
+hash = "sha1-d2a54cb41dc5f7b90a5b89189cb5657f97d1d778"
+other = "Dringenste (Fälligkeit)"
+
+[task_order_due_date_desc]
+hash = "sha1-79910e8d80d81c657d96706d08bce548a1e478d8"
+other = "Unwichtigste (Fälligkeit)"
+
+[task_order_subject_asc]
+hash = "sha1-b36050d68e826230a426cce66a71596fa376a9d8"
+other = "Betreff (alphabetisch)"
+
+[task_order_subject_desc]
+hash = "sha1-3fa845f794eeedef15331b0e9d2b57269f7370fa"
+other = "Betreff (rückwärts)"
+
+[task_save]
+hash = "sha1-13a4a11319d31c1b323d5774f44240a9ffc984d0"
+other = "speichern"
+
+[task_saving]
+hash = "sha1-e7912bf7c891d60e9c897cc1d565167f92ffb9a8"
+other = "speichere"
+
+[task_subject]
+hash = "sha1-335ce16b3fe40346cc3af2a4efce2ef04bc4ea55"
+other = "Betreff"

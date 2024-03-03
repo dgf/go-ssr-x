@@ -30,8 +30,8 @@ const (
 )
 
 var taskOrderLabels = []string{
-	"created-desc",
 	"created-asc",
+	"created-desc",
 	"due-date-asc",
 	"due-date-desc",
 	"subject-asc",

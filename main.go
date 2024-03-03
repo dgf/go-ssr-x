@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"net/http"
@@ -8,7 +9,9 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+
 	"github.com/dgf/go-ssr-x/entity"
+	"github.com/dgf/go-ssr-x/locales"
 	"github.com/dgf/go-ssr-x/server"
 	"github.com/dgf/go-ssr-x/view"
 )
@@ -39,11 +42,14 @@ func init() {
 
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		translator := locales.NewTranslator(r)
+		ctx := context.WithValue(r.Context(), view.TranslatorKey, translator)
+
 		component := handler(w, r)
 		if r.Header.Get("HX-Request") == "true" {
-			component.Render(r.Context(), w)
+			component.Render(ctx, w)
 		} else {
-			view.Page(component).Render(r.Context(), w)
+			view.Page(component).Render(ctx, w)
 		}
 	})
 }
@@ -60,14 +66,13 @@ func main() {
 	route("DELETE /tasks/{id}", taskServer.DeleteTask)
 	route("PUT /tasks/{id}", taskServer.UpdateTask)
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	route("/", func(w http.ResponseWriter, r *http.Request) templ.Component {
 		if r.URL.Path == "/" {
-			view.Page(taskServer.TasksSection(w, r)).Render(r.Context(), w)
-			return
+			return taskServer.TasksSection(w, r)
 		}
 
 		w.WriteHeader(404)
-		view.NotFoundPage(r.Method, r.URL.Path).Render(r.Context(), w)
+		return view.NotFound(r.Method, r.URL.Path)
 	})
 
 	fmt.Println("Listening on :3000")

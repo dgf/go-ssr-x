@@ -15,6 +15,7 @@ npm run build # to create CSS asset
 
 go install github.com/a-h/templ/cmd/templ@latest
 go install github.com/cosmtrek/air@latest
+go install github.com/nicksnyder/go-i18n/v2/goi18n@latest
 ```
 
 ## Hot deploy
@@ -31,15 +32,32 @@ watch `templ` and Golang changes to restart the server
 air
 ```
 
+## Update Translations
+
+extract defaults from code base (initial steps)
+
+```sh
+goi18n extract -format toml --outdir locales
+cd locales
+goi18n merge active.en.toml translate.de.toml
+```
+
+```sh
+goi18n extract -format toml --outdir locales
+cd locales
+goi18n merge active.*.toml
+```
+
 ## Features (non functional techy stuff)
 
 - [x] server side rendering (Golang templ)
 - [x] hypermedia driven client interaction (htmx)
 - [x] notification snackbar (htmx OOB and extension)
-- [x] Markdown rending and styling (goldmark and tailwind)
+- [x] Markdown rending and styling (goldmark and Tailwind)
 - [x] table sorting
 - [ ] table paging
 - [x] Golang enum string mapping
 - [x] browser history update and reload of subpages
+- [ ] JSON logging (Golang slog)
 - [ ] i18n - translate template labels and notification messages
 - [ ] l10n - display dates in localized format

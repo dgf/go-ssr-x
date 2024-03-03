@@ -1,0 +1,7 @@
+package view
+
+templ NotFound(method string, path string) {
+	<div class="container">
+		<h1>{ TranslateData(ctx, "error_not_found", map[string]string{ "Method": method, "Path": path}) }</h1>
+	</div>
+}

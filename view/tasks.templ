@@ -13,7 +13,7 @@ templ TaskCreateForm() {
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
-			<label for="subject" class="my-2">Subject</label>
+			<label for="subject" class="my-2 capitalize">{ Translate(ctx, "task_subject") }</label>
 			<input
 				name="subject"
 				required
@@ -21,7 +21,7 @@ templ TaskCreateForm() {
 				maxlength="255"
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="dueDate" class="my-2">Due Date</label>
+			<label for="dueDate" class="my-2 capitalize">{ Translate(ctx, "task_due_date") }</label>
 			<input
 				name="dueDate"
 				type="date"
@@ -29,24 +29,24 @@ templ TaskCreateForm() {
 				min={ time.Now().Format(time.DateOnly) }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="description" class="my-2">Description</label>
+			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
 			<textarea name="description" rows="7" class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"></textarea>
 		</div>
 		<div class="flex flex-row justify-between py-3">
 			<div>
 				<button
-					class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
+					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					Create
+					{ Translate(ctx, "task_create") }
 				</button>
 				<button
 					hx-get="/tasks"
-					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
+					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					Cancel
+					{ Translate(ctx, "task_cancel") }
 				</button>
 			</div>
-			<div class="htmx-indicator px-2 py-1">Creating ...</div>
+			<div class="htmx-indicator px-2 py-1 capitalize">{ Translate(ctx, "task_creating") } ...</div>
 		</div>
 	</form>
 }
@@ -61,7 +61,7 @@ templ TaskEditForm(task entity.Task) {
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
-			<label for="subject" class="my-2">Subject</label>
+			<label for="subject" class="my-2 capitalize">{ Translate(ctx, "task_subject") }</label>
 			<input
 				name="subject"
 				required
@@ -70,7 +70,7 @@ templ TaskEditForm(task entity.Task) {
 				value={ task.Subject }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="dueDate" class="my-2">Due Date</label>
+			<label for="dueDate" class="my-2 capitalize">{ Translate(ctx, "task_due_date") }</label>
 			<input
 				name="dueDate"
 				type="date"
@@ -78,7 +78,7 @@ templ TaskEditForm(task entity.Task) {
 				min={ date(task.CreatedAt) }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="description" class="my-2">Description</label>
+			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
 			<textarea name="description" rows="7" class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700">
 				{ task.Desciption }
 			</textarea>
@@ -86,18 +86,18 @@ templ TaskEditForm(task entity.Task) {
 		<div class="flex flex-row justify-between py-3">
 			<div>
 				<button
-					class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
+					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					Save
+					{ Translate(ctx, "task_save") }
 				</button>
 				<button
 					hx-get={ "/tasks/" + task.Id.String() }
-					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
+					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					Cancel
+					{ Translate(ctx, "task_cancel") }
 				</button>
 			</div>
-			<div class="htmx-indicator px-2 py-1">Saving ...</div>
+			<div class="htmx-indicator px-2 py-1 capitalize">{ Translate(ctx, "task_saving") } ...</div>
 		</div>
 	</form>
 }
@@ -109,13 +109,13 @@ templ TaskDetails(task entity.Task) {
 		class="container rounded-lg bg-stone-200 py-2 shadow-lg dark:bg-stone-800"
 	>
 		<div class="grid grid-cols-[1fr_3fr] gap-2">
-			<div>Subject:</div>
+			<div class="capitalize">{ Translate(ctx, "task_subject") }</div>
 			<div>{ task.Subject }</div>
-			<div>Created At:</div>
+			<div class="capitalize">{ Translate(ctx, "task_created_at") }</div>
 			<div>{ dateTime(task.CreatedAt) }</div>
-			<div>Due Date:</div>
+			<div class="capitalize">{ Translate(ctx, "task_due_date") }</div>
 			<div>{ date(task.DueDate) }</div>
-			<div>Description:</div>
+			<div class="capitalize">{ Translate(ctx, "task_description") }</div>
 			<div class="prose prose-sm dark:prose-invert">
 				@markdown(task.Desciption)
 			</div>
@@ -124,18 +124,17 @@ templ TaskDetails(task entity.Task) {
 			<div hx-disabled-elt="button">
 				<button
 					hx-get={ "/tasks/" + task.Id.String() + "/edit" }
-					class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
+					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					Edit
+					{ Translate(ctx, "task_edit") }
 				</button>
 				<button
 					hx-get="/tasks"
-					class="rounded-full bg-stone-300 px-3 py-1 font-semibold shadow-lg hover:bg-stone-200 disabled:opacity-90 dark:bg-stone-700 dark:hover:bg-stone-600"
+					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-90 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					Back
+					{ Translate(ctx, "task_back") }
 				</button>
 			</div>
-			<div class="htmx-indicator px-2 py-1">Sending ...</div>
 		</div>
 	</section>
 }
@@ -167,7 +166,7 @@ templ TaskRow(task entity.Task) {
 			</button>
 			<button
 				hx-delete={ "/tasks/" + task.Id.String() }
-				hx-confirm="Are you sure?"
+				hx-confirm={ Translate(ctx, "task_confirm_delete") }
 				hx-target="closest tr"
 				hx-swap="outerHTML swap:1s"
 				class="h-8 w-8 rounded-full bg-orange-400 px-2 py-1 shadow-lg hover:bg-orange-300 dark:bg-rose-700 dark:hover:bg-rose-600"
@@ -189,9 +188,9 @@ templ TaskTable(tasks []entity.Task) {
 		<table class="w-full">
 			<thead class="bg-stone-400 text-left font-semibold dark:bg-stone-600">
 				<tr>
-					<th class="p-2">Created At</th>
-					<th class="p-2">Due Date</th>
-					<th class="p-2">Subject</th>
+					<th class="p-2 capitalize">{ Translate(ctx, "task_created_at") }</th>
+					<th class="p-2 capitalize">{ Translate(ctx, "task_due_date") }</th>
+					<th class="p-2 capitalize">{ Translate(ctx, "task_subject") }</th>
 					<th class="p-2"></th>
 				</tr>
 			</thead>
@@ -207,7 +206,7 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 		<div class="flex flex-row items-center justify-between py-3">
 			<div class="py-1">
 				if len(tasks) > 0 {
-					filter
+					TBD filter by subject
 				}
 			</div>
 			<div class="py-1">
@@ -222,12 +221,12 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 							class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 						>
 							@optionList(order.String(), []Option{
-								{value: "created-desc", label: "Newest (created)"},
-								{value: "created-asc", label: "Oldest (created)"},
-								{value: "due-date-asc", label: "Urgent (due date)"},
-								{value: "due-date-desc", label: "Relaxed (due date)"},
-								{value: "subject-asc", label: "Subject (alphabetical)"},
-								{value: "subject-desc", label: "Subject (reverse)"},
+								{value: "created-desc", label: Translate(ctx, "task_order_created_desc")},
+								{value: "created-asc", label: Translate(ctx, "task_order_created_asc")},
+								{value: "due-date-asc", label: Translate(ctx, "task_order_due_date_asc")},
+								{value: "due-date-desc", label: Translate(ctx, "task_order_due_date_desc")},
+								{value: "subject-asc", label: Translate(ctx, "task_order_subject_asc")},
+								{value: "subject-desc", label: Translate(ctx, "task_order_subject_desc")},
 							})
 						</select>
 					</form>
@@ -235,9 +234,9 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 			</div>
 			<button
 				hx-get="/tasks/new"
-				class="rounded-full bg-sky-500 px-3 py-1 font-semibold shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
+				class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
-				Add
+				{ Translate(ctx, "task_add") }
 			</button>
 		</div>
 		if len(tasks) > 0 {

@@ -3,8 +3,9 @@ package view
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/a-h/templ"
@@ -28,7 +29,7 @@ func dateTime(dt time.Time) string {
 func markdown(md string) templ.Component {
 	var buf bytes.Buffer
 	if err := goldmark.Convert([]byte(md), &buf); err != nil {
-		log.Printf("failed to convert markdown to HTML: %v", err)
+		slog.Warn(fmt.Sprintf("failed to convert markdown to HTML: %v", err))
 		return templ.NopComponent
 	}
 

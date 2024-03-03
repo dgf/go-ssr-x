@@ -2,6 +2,8 @@ assets/css/tailwind.css
 assets/js/htmx.min.js
 assets/js/remove-me.js
 assets/js/response-targets.js
+locales/active.en.toml
+locales/translate.*.toml
 tmp/
 
 node_modules/
