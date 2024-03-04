@@ -10,6 +10,10 @@ other = "Aufruffehler"
 hash = "sha1-bbbb7a8472fa5a7597b5388c18362d437469cc9b"
 other = "Die Aktualisierung der Aufgabe ist aufgrund eines Konflikts fehlgeschlagen. Bitte versuche es erneut."
 
+[internal_server_error]
+hash = "sha1-ffa5578af85cd8c29d2df2242dc504e3b2ba687d"
+other = "Interner Server Fehler"
+
 [not_found_path]
 hash = "sha1-78eff768fd13def4a68379c223f8b9289160cf6c"
 other = "Ressource nicht gefunden '{{.method}} {{.path}}'"
@@ -105,3 +109,7 @@ other = "speichere"
 [task_subject]
 hash = "sha1-335ce16b3fe40346cc3af2a4efce2ef04bc4ea55"
 other = "Betreff"
+
+[tasks_loading]
+hash = "sha1-14b85fa8e87f846f757eaccda09761641b397f01"
+other = "lade"

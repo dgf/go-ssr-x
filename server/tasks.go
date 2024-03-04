@@ -48,7 +48,6 @@ func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Com
 
 func (ts *TaskServer) TasksSection(w http.ResponseWriter, r *http.Request) templ.Component {
 	order := entity.TaskOrderOrDefault(r.URL.Query().Get("order"))
-	w.Header().Add("HX-Push-Url", "/tasks?order="+order.String())
 	return view.TasksSection(ts.storage.Tasks(order), order)
 }
 

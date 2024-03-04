@@ -63,6 +63,7 @@ func init() {
 		{ID: "task_order_due_date_desc", Other: "Relaxed (due date)"},
 		{ID: "task_order_subject_asc", Other: "Subject (alphabetical)"},
 		{ID: "task_order_subject_desc", Other: "Subject (reverse)"},
+		{ID: "tasks_loading", Other: "loading"},
 	}
 
 	messageByID = make(map[string]*i18n.Message, len(messages))

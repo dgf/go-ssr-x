@@ -10,6 +10,7 @@ templ TaskCreateForm() {
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
 		hx-disabled-elt="button"
+		hx-push-url="true"
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
@@ -35,6 +36,7 @@ templ TaskCreateForm() {
 		<div class="flex flex-row justify-between py-3">
 			<div>
 				<button
+					hx-push-url="true"
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
 					{ Translate(ctx, "task_create") }
@@ -58,7 +60,7 @@ templ TaskEditForm(task entity.Task) {
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
 		hx-disabled-elt="button"
-		hx-history="false"
+		hx-push-url="true"
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
@@ -107,7 +109,6 @@ templ TaskDetails(task entity.Task) {
 	<section
 		hx-target="this"
 		hx-swap="outerHTML"
-		hx-history="false"
 		class="container rounded-lg bg-stone-200 py-2 shadow-lg dark:bg-stone-800"
 	>
 		<div class="grid grid-cols-[1fr_3fr] gap-2">
@@ -126,12 +127,14 @@ templ TaskDetails(task entity.Task) {
 			<div hx-disabled-elt="button">
 				<button
 					hx-get={ "/tasks/" + task.Id.String() + "/edit" }
+					hx-push-url="true"
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
 					{ Translate(ctx, "task_edit") }
 				</button>
 				<button
 					hx-get="/tasks"
+					hx-push-url="true"
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-90 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
 					{ Translate(ctx, "task_back") }
@@ -145,7 +148,6 @@ templ TaskRow(task entity.Task) {
 	<tr
 		id={ task.Id.String() }
 		data-created-at={ task.CreatedAt.Format(time.DateTime) }
-		hx-history="false"
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
 		<td class="p-2 proportional-nums">
@@ -158,6 +160,7 @@ templ TaskRow(task entity.Task) {
 		<td class="flex gap-1 p-2">
 			<button
 				hx-get={ "/tasks/" + task.Id.String() }
+				hx-push-url="true"
 				class="h-8 w-8 rounded-full bg-sky-500 px-2 py-1 shadow-lg hover:bg-sky-400 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
 				@magnify()
@@ -215,7 +218,8 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 							hx-get="/tasks/rows"
 							hx-target="#task-rows"
 							hx-swap="innerHTML"
-							hx-indicator="#task-loading"
+							hx-indicator="#tasks-loading"
+							hx-push-url="true"
 							class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 						>
 							@optionList(order.String(), []Option{
@@ -230,8 +234,10 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder) {
 					</form>
 				}
 			</div>
+			<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
 			<button
 				hx-get="/tasks/new"
+				hx-push-url="true"
 				class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
 				{ Translate(ctx, "task_add") }

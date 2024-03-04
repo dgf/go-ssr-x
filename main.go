@@ -46,6 +46,7 @@ func init() {
 
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
 		ctx := context.WithValue(r.Context(), view.LocaleHelperKey, view.LocaleHelper{
 			Formatter:  locale.NewFormatter(r),
 			Translator: locale.NewTranslator(r),

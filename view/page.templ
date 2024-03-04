@@ -14,8 +14,9 @@ templ page(title string) {
 			<script src="/assets/js/htmx.min.js"></script>
 			<script src="/assets/js/response-targets.js"></script>
 			<script src="/assets/js/remove-me.js"></script>
+			<script src="/assets/js/disable-history.js"></script>
 		</header>
-		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets,remove-me" hx-push-url="true">
+		<body class="m-4 bg-stone-100 dark:bg-stone-900 dark:text-white" hx-ext="response-targets,remove-me">
 			{ children... }
 		</body>
 	</html>
