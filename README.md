@@ -37,14 +37,14 @@ air
 extract defaults from code base (initial steps)
 
 ```sh
-goi18n extract -format toml --outdir locales
-cd locales
+goi18n extract -format toml --outdir locale
+cd locale
 goi18n merge active.en.toml translate.de.toml
 ```
 
 ```sh
-goi18n extract -format toml --outdir locales
-cd locales
+goi18n extract -format toml --outdir locale
+cd locale
 goi18n merge active.*.toml
 ```
 
@@ -60,4 +60,4 @@ goi18n merge active.*.toml
 - [x] browser history update and reload of subpages
 - [x] JSON logging (Golang slog)
 - [x] i18n - translate template labels and notification messages
-- [ ] l10n - display dates in localized format
+- [x] l10n - display dates in localized format (simple formatting helpers)

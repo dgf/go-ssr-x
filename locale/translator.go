@@ -1,4 +1,4 @@
-package locales
+package locale
 
 import (
 	"embed"
@@ -69,10 +69,8 @@ func init() {
 }
 
 func NewTranslator(r *http.Request) Translator {
-	lang := r.URL.Query().Get("lang")
-	accept := r.Header.Get("Accept-Language")
 	return &translator{
-		localizer: i18n.NewLocalizer(bundle, lang, accept),
+		localizer: i18n.NewLocalizer(bundle, r.Header.Get("Accept-Language")),
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/dgf/go-ssr-x/entity"
-	"github.com/dgf/go-ssr-x/locales"
+	"github.com/dgf/go-ssr-x/locale"
 	"github.com/dgf/go-ssr-x/server"
 	"github.com/dgf/go-ssr-x/view"
 )
@@ -46,8 +46,10 @@ func init() {
 
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		translator := locales.NewTranslator(r)
-		ctx := context.WithValue(r.Context(), view.TranslatorKey, translator)
+		ctx := context.WithValue(r.Context(), view.LocaleHelperKey, view.LocaleHelper{
+			Formatter:  locale.NewFormatter(r),
+			Translator: locale.NewTranslator(r),
+		})
 
 		component := handler(w, r)
 		if r.Header.Get("HX-Request") == "true" {

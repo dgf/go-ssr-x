@@ -19,13 +19,6 @@ func date(d time.Time) string {
 	return ""
 }
 
-func dateTime(dt time.Time) string {
-	if !dt.IsZero() {
-		return dt.Format(time.DateTime)
-	}
-	return ""
-}
-
 func markdown(md string) templ.Component {
 	var buf bytes.Buffer
 	if err := goldmark.Convert([]byte(md), &buf); err != nil {

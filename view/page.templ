@@ -24,7 +24,7 @@ templ page(title string) {
 templ Page(content templ.Component) {
 	@page(Translate(ctx, "page_title")) {
 		<header class="container relative pb-3 pt-2">
-			<h1 class="pb-1 text-xl font-bold">{ Translate(ctx, "page_title") } { date(time.Now()) }</h1>
+			<h1 class="pb-1 text-xl font-bold">{ Translate(ctx, "page_title") } { LocalizeDate(ctx, time.Now()) }</h1>
 			<div id="snackbar" class="absolute right-2 top-1 flex w-2/3 flex-col items-end"></div>
 		</header>
 		<div hx-target-error="#snackbar">

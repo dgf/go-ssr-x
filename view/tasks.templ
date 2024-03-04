@@ -25,8 +25,8 @@ templ TaskCreateForm() {
 			<input
 				name="dueDate"
 				type="date"
-				value={ time.Now().Add(3 * 24 * time.Hour).Format(time.DateOnly) }
-				min={ time.Now().Format(time.DateOnly) }
+				value={ date(time.Now().Add(3 * 24 * time.Hour)) }
+				min={ date(time.Now()) }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
 			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
@@ -114,9 +114,9 @@ templ TaskDetails(task entity.Task) {
 			<div class="capitalize">{ Translate(ctx, "task_subject") }</div>
 			<div>{ task.Subject }</div>
 			<div class="capitalize">{ Translate(ctx, "task_created_at") }</div>
-			<div>{ dateTime(task.CreatedAt) }</div>
+			<div>{ LocalizeDateTime(ctx, task.CreatedAt) }</div>
 			<div class="capitalize">{ Translate(ctx, "task_due_date") }</div>
-			<div>{ date(task.DueDate) }</div>
+			<div>{ LocalizeDate(ctx, task.DueDate) }</div>
 			<div class="capitalize">{ Translate(ctx, "task_description") }</div>
 			<div class="prose prose-sm dark:prose-invert">
 				@markdown(task.Desciption)
@@ -149,10 +149,10 @@ templ TaskRow(task entity.Task) {
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
 		<td class="p-2 proportional-nums">
-			{ dateTime(task.CreatedAt) }
+			{ LocalizeDateTime(ctx, task.CreatedAt) }
 		</td>
 		<td class="p-2 proportional-nums">
-			{ date(task.DueDate) }
+			{ LocalizeDate(ctx, task.DueDate) }
 		</td>
 		<td class="p-2">{ task.Subject }</td>
 		<td class="flex gap-1 p-2">
