@@ -30,10 +30,13 @@ var messageByID map[string]*i18n.Message
 func init() {
 	bundle = i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.LoadMessageFileFS(localeFS, "active.de.toml")
+	if _, err := bundle.LoadMessageFileFS(localeFS, "active.de.toml"); err != nil {
+		slog.Error(fmt.Sprintf("bundle message load failed: %v", err))
+	}
 
 	messages := [...]*i18n.Message{
 		{ID: "page_title", Other: "My Tasks"},
+		{ID: "internal_server_error", Other: "Internal Server Error"},
 		{ID: "bad_request_path_param", Other: "Bad Request, invalid path param '{{.param}}' value '{{.value}}'"},
 		{ID: "client_error", Other: "Client Error"},
 		{ID: "conflict_task_update", Other: "The task update has failed due to an editing conflict. Please try the update again."},

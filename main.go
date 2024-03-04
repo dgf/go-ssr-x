@@ -52,10 +52,11 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 		})
 
 		component := handler(w, r)
-		if r.Header.Get("HX-Request") == "true" {
-			component.Render(ctx, w)
-		} else {
-			view.Page(component).Render(ctx, w)
+		if r.Header.Get("HX-Request") != "true" {
+			component = view.Page(component)
+		}
+		if err := component.Render(ctx, w); err != nil {
+			slog.Error(fmt.Sprintf("component rendering failed: %v", err))
 		}
 	})
 }
@@ -82,5 +83,5 @@ func main() {
 	})
 
 	slog.Info("Listening on :3000")
-	http.ListenAndServe("0.0.0.0:3000", mux)
+	slog.Error(fmt.Sprintf("listen and serve failed: %v", http.ListenAndServe("0.0.0.0:3000", mux)))
 }
