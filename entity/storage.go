@@ -7,9 +7,10 @@ import (
 )
 
 type Storage interface {
-	AddTask(subject string, dueDate time.Time, description string) uuid.UUID
-	Task(id uuid.UUID) (task Task, ok bool)
-	Tasks(order TaskOrder) []Task
-	DeleteTask(id uuid.UUID)
-	UpdateTask(id uuid.UUID, subject string, dueDate time.Time, description string) (task Task, ok bool)
+	AddTask(dueDate time.Time, subject, description string) (uuid.UUID, error)
+	TaskCount() (int, error)
+	Task(id uuid.UUID) (task Task, found bool, err error)
+	Tasks(order TaskOrder) ([]Task, error)
+	DeleteTask(id uuid.UUID) error
+	UpdateTask(id uuid.UUID, dueDate time.Time, subject, description string) (task Task, found bool, err error)
 }

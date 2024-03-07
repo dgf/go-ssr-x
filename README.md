@@ -1,10 +1,10 @@
 # Go Server Side Rendering Experiment
 
-using Golang with `templ` and `htmx` to serve HDA with Tailwind layout
+Using Golang with `templ` and `htmx` to serve an HDA with Tailwind layout.
 
 ## How to get started
 
-init environment
+Initialize environment
 
 ```sh
 npm install # to install dependencies
@@ -20,13 +20,13 @@ go install github.com/nicksnyder/go-i18n/v2/goi18n@latest
 
 ## Hot deploy
 
-watch CSS changes to update Tailwind
+Watch CSS changes to update Tailwind
 
 ```sh
 npm run watch
 ```
 
-watch `templ` and Golang changes to restart the server
+Watch `templ` and Golang changes to restart the server
 
 ```sh
 air
@@ -34,7 +34,7 @@ air
 
 ## Update Translations
 
-extract defaults from code base (initial steps)
+Extract defaults from code base (initial steps)
 
 ```sh
 goi18n extract -format toml --outdir locale
@@ -42,10 +42,36 @@ cd locale
 goi18n merge active.en.toml translate.de.toml
 ```
 
+Merge translations iteratively after each code update
+
 ```sh
 goi18n extract -format toml --outdir locale
 cd locale
 goi18n merge active.*.toml
+```
+
+## Use PostgreSQL
+
+Configure a server and create a database, e.g. Docker based
+
+```sh
+docker run --name task-db -p 5432:5432 \
+  -e POSTGRES_USER=task-db-user \
+  -e POSTGRES_PASSWORD=my53cr3tpa55w0rd \
+  -d postgres:16-alpine
+```
+
+Access the database
+
+```sh
+docker exec -it task-db psql -U task-db-user
+```
+
+Install database migration tool and run migrations
+
+```sh
+go install github.com/pressly/goose/v3/cmd/goose@latest
+goose -dir entity postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" up
 ```
 
 ## Features (non functional techy stuff)

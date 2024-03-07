@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"embed"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -22,9 +22,24 @@ import (
 var assets embed.FS
 
 var (
-	mux     *http.ServeMux
-	storage entity.Storage
+	mux         *http.ServeMux
+	storage     entity.Storage
+	storageType string
+	connStr     string
 )
+
+const defaultConnStr = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
+
+func parseFlags() {
+	flag.StringVar(&storageType, "storage", "memory", "memory or database")
+	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
+	flag.Parse()
+
+	if storageType != "memory" && storageType != "database" {
+		flag.Usage()
+		os.Exit(1)
+	}
+}
 
 func init() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
@@ -34,14 +49,6 @@ func init() {
 	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
 	})
-
-	storage = entity.NewMemory()
-	for i := range 100 {
-		dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
-		subject := fmt.Sprintf("to do %v something", i+1)
-		desc := fmt.Sprintf("# first\n## second\nsome `code` check\n```\nmore\ncode\n```\n\nlist:\n\n- %v", strings.Join([]string{"foo", "bar"}, "\n- "))
-		storage.AddTask(subject, time.Now().Add(dueInDays), desc)
-	}
 }
 
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
@@ -63,6 +70,29 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 }
 
 func main() {
+	parseFlags()
+	if storageType == "memory" {
+		slog.Warn("running with in-memory storage, the data will be lost when restarting")
+		storage = entity.NewMemory()
+	}
+
+	if storageType == "database" {
+		storage = entity.NewDatabase(connStr)
+	}
+
+	if taskCount, err := storage.TaskCount(); err != nil {
+		slog.Error(fmt.Sprintf("initial database query failed: %v", err))
+		os.Exit(7)
+	} else if taskCount == 0 {
+		slog.Info("initialize storage with some tasks")
+		for i := range 100 {
+			dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
+			subject := fmt.Sprintf("to do %v something", i+1)
+			desc := "some `code` check\n\nlist:\n\n- foo\n- bar"
+			_, _ = storage.AddTask(time.Now().Add(dueInDays), subject, desc)
+		}
+	}
+
 	taskServer := server.NewTaskServer(storage)
 
 	route("GET /tasks/new", taskServer.TaskCreateForm)
