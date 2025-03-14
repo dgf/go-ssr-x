@@ -1,6 +1,6 @@
 {
   "name": "assets",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Frontend Assets",
   "license": "UNLICENSED",
   "scripts": {
@@ -8,10 +8,10 @@
     "watch": "tailwindcss build -o assets/css/tailwind.css --watch"
   },
   "dependencies": {
-    "htmx.org": "1.9.10"
+    "htmx.org": "1.9.12"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "0.5.10",
-    "tailwindcss": "3.4.1"
+    "@tailwindcss/typography": "0.5.16",
+    "tailwindcss": "3.4.17"
   }
 }
