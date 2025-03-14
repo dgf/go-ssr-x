@@ -14,7 +14,7 @@ cp node_modules/htmx.org/dist/ext/remove-me.js assets/js
 npm run build # to create CSS asset
 
 go install github.com/a-h/templ/cmd/templ@latest
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 go install github.com/nicksnyder/go-i18n/v2/goi18n@latest
 ```
 
