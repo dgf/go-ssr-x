@@ -10,41 +10,49 @@ import (
 
 type ViewContextKey string
 
-var LocaleHelperKey ViewContextKey = "locale"
+var LocaleContextKey ViewContextKey = "locale"
 
-type LocaleHelper struct {
+type LocaleContext struct {
 	Formatter  locale.Formatter
 	Translator locale.Translator
 }
 
-func LocalizeDate(ctx context.Context, d time.Time) string {
-	if h, ok := ctx.Value(LocaleHelperKey).(LocaleHelper); ok {
-		return h.Formatter.FormatDate(d)
+func runLocalized(ctx context.Context, localize func(LocaleContext) string, fallback func() string) string {
+	if l, ok := ctx.Value(LocaleContextKey).(LocaleContext); ok {
+		return localize(l)
 	}
-	slog.Warn("view context contains no fromatter")
-	return d.Format(time.DateOnly)
+	slog.Warn("view context contains no locale")
+	return fallback()
+}
+
+func LocalizeDate(ctx context.Context, d time.Time) string {
+	return runLocalized(ctx, func(l LocaleContext) string {
+		return l.Formatter.FormatDate(d)
+	}, func() string {
+		return d.Format(time.DateOnly)
+	})
 }
 
 func LocalizeDateTime(ctx context.Context, dt time.Time) string {
-	if h, ok := ctx.Value(LocaleHelperKey).(LocaleHelper); ok {
-		return h.Formatter.FormatDateTime(dt)
-	}
-	slog.Warn("view context contains no fromatter")
-	return dt.Format(time.DateTime)
+	return runLocalized(ctx, func(l LocaleContext) string {
+		return l.Formatter.FormatDateTime(dt)
+	}, func() string {
+		return dt.Format(time.DateTime)
+	})
 }
 
 func Translate(ctx context.Context, messageID string) string {
-	if h, ok := ctx.Value(LocaleHelperKey).(LocaleHelper); ok {
-		return h.Translator.Translate(messageID)
-	}
-	slog.Warn("view context contains no translator")
-	return messageID
+	return runLocalized(ctx, func(l LocaleContext) string {
+		return l.Translator.Translate(messageID)
+	}, func() string {
+		return messageID
+	})
 }
 
 func TranslateData(ctx context.Context, messageID string, data map[string]string) string {
-	if h, ok := ctx.Value(LocaleHelperKey).(LocaleHelper); ok {
-		return h.Translator.TranslateData(messageID, data)
-	}
-	slog.Warn("view context contains no translator")
-	return messageID
+	return runLocalized(ctx, func(l LocaleContext) string {
+		return l.Translator.TranslateData(messageID, data)
+	}, func() string {
+		return messageID
+	})
 }

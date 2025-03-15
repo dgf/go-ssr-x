@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"log/slog"
-	"net/http"
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -73,9 +72,9 @@ func init() {
 	}
 }
 
-func NewTranslator(r *http.Request) Translator {
+func RequestTranslator(lang language.Tag) Translator {
 	return &translator{
-		localizer: i18n.NewLocalizer(bundle, r.Header.Get("Accept-Language")),
+		localizer: i18n.NewLocalizer(bundle, lang.String()),
 	}
 }
 

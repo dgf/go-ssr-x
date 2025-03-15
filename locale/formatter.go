@@ -1,8 +1,6 @@
 package locale
 
 import (
-	"log/slog"
-	"net/http"
 	"time"
 
 	"golang.org/x/text/language"
@@ -18,46 +16,41 @@ type formatter struct {
 	formatDateTime func(dt time.Time) string
 }
 
-func acceptOrDefault(r *http.Request) language.Tag {
-	accept := r.Header.Get("Accept-Language")
-	if tags, _, err := language.ParseAcceptLanguage(accept); err != nil {
-		slog.Info("accept language header parse failed", "header", accept)
-		return language.English
-	} else {
-		return tags[0]
-	}
+var germanFormatter = &formatter{
+	formatDate: func(d time.Time) string {
+		return d.Format("02.01.2006")
+	},
+	formatDateTime: func(dt time.Time) string {
+		return dt.Format("02.01.2006 15:04:05")
+	},
 }
 
-func NewFormatter(r *http.Request) Formatter {
-	lang := acceptOrDefault(r)
+var englishFormatter = &formatter{
+	formatDate: func(d time.Time) string {
+		return d.Format("01/02/2006")
+	},
+	formatDateTime: func(dt time.Time) string {
+		return dt.Format("01/02/2006 3:04PM")
+	},
+}
+
+var defaultFormatter = &formatter{
+	formatDate: func(d time.Time) string {
+		return d.Format(time.DateOnly)
+	},
+	formatDateTime: func(dt time.Time) string {
+		return dt.Format(time.DateTime)
+	},
+}
+
+func RequestFormatter(lang language.Tag) Formatter {
 	switch lang {
 	case language.German:
-		return &formatter{
-			formatDate: func(d time.Time) string {
-				return d.Format("02.01.2006")
-			},
-			formatDateTime: func(dt time.Time) string {
-				return dt.Format("02.01.2006 15:04:05")
-			},
-		}
+		return germanFormatter
 	case language.AmericanEnglish, language.BritishEnglish, language.English:
-		return &formatter{
-			formatDate: func(d time.Time) string {
-				return d.Format("01/02/2006")
-			},
-			formatDateTime: func(dt time.Time) string {
-				return dt.Format("01/02/2006 3:04PM")
-			},
-		}
+		return englishFormatter
 	default:
-		return &formatter{
-			formatDate: func(d time.Time) string {
-				return d.Format(time.DateOnly)
-			},
-			formatDateTime: func(dt time.Time) string {
-				return dt.Format(time.DateTime)
-			},
-		}
+		return defaultFormatter
 	}
 }
 
