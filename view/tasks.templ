@@ -163,7 +163,7 @@ templ TaskRow(task entity.Task) {
 				hx-push-url="true"
 				class="h-8 w-8 rounded-full bg-sky-500 px-2 py-1 shadow-lg hover:bg-sky-400 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
-				@magnify()
+				<img src="/assets/icons/magnify.svg"/>
 			</button>
 			<button
 				hx-delete={ "/tasks/" + task.Id.String() }
@@ -172,7 +172,7 @@ templ TaskRow(task entity.Task) {
 				hx-swap="outerHTML swap:1s"
 				class="h-8 w-8 rounded-full bg-orange-400 px-2 py-1 shadow-lg hover:bg-orange-300 dark:bg-rose-700 dark:hover:bg-rose-600"
 			>
-				@trash()
+				<img src="/assets/icons/trash.svg"/>
 			</button>
 		</td>
 	</tr>
