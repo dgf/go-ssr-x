@@ -3,12 +3,12 @@ package entity
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"os"
 	"time"
 
 	_ "github.com/lib/pq"
 
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/google/uuid"
 )
 
@@ -24,17 +24,10 @@ const (
 	updateTaskSQL = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 )
 
-func sslMode(ssl bool) string {
-	if ssl {
-		return "enable"
-	}
-	return "disable"
-}
-
 func NewDatabase(connStr string) Storage {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		slog.Error("open database connection failed: %v", err)
+		log.Error("open database connection failed", err)
 		os.Exit(101)
 	}
 	return &database{db: db}

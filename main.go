@@ -5,7 +5,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/locale"
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/dgf/go-ssr-x/server"
 	"github.com/dgf/go-ssr-x/view"
 	"golang.org/x/text/language"
@@ -43,8 +43,6 @@ func parseFlags() {
 }
 
 func init() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
-
 	mux = http.NewServeMux()
 	mux.Handle("/assets/", http.FileServer(http.FS(assets)))
 	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
@@ -55,7 +53,7 @@ func init() {
 func acceptOrDefault(r *http.Request) language.Tag {
 	accept := r.Header.Get("Accept-Language")
 	if tags, _, err := language.ParseAcceptLanguage(accept); err != nil {
-		slog.Info("accept language header parse failed", "header", accept)
+		log.Info("accept language header parse failed", "header", accept)
 		return language.English
 	} else {
 		return tags[0]
@@ -76,7 +74,7 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 			component = view.Page(component)
 		}
 		if err := component.Render(ctx, w); err != nil {
-			slog.Error(fmt.Sprintf("component rendering failed: %v", err))
+			log.Error("component rendering failed", err)
 		}
 	})
 }
@@ -84,7 +82,7 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 func main() {
 	parseFlags()
 	if storageType == "memory" {
-		slog.Warn("running with in-memory storage, the data will be lost when restarting")
+		log.Warn("running with in-memory storage, the data will be lost when restarting")
 		storage = entity.NewMemory()
 	}
 
@@ -93,10 +91,10 @@ func main() {
 	}
 
 	if taskCount, err := storage.TaskCount(); err != nil {
-		slog.Error(fmt.Sprintf("initial database query failed: %v", err))
+		log.Error("initial database query failed", err)
 		os.Exit(7)
 	} else if taskCount == 0 {
-		slog.Info("initialize storage with some tasks")
+		log.Info("initialize storage with some tasks")
 		for i := range 100 {
 			dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
 			subject := fmt.Sprintf("to do %v something", i+1)
@@ -125,6 +123,6 @@ func main() {
 		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 
-	slog.Info("Listening on :3000")
-	slog.Error(fmt.Sprintf("listen and serve failed: %v", http.ListenAndServe("0.0.0.0:3000", mux)))
+	log.Info("Listening on :3000")
+	log.Error("listen and serve failed", http.ListenAndServe("0.0.0.0:3000", mux))
 }

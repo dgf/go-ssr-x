@@ -3,9 +3,9 @@ package locale
 import (
 	"embed"
 	"fmt"
-	"log/slog"
 
 	"github.com/BurntSushi/toml"
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -30,7 +30,7 @@ func init() {
 	bundle = i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 	if _, err := bundle.LoadMessageFileFS(localeFS, "active.de.toml"); err != nil {
-		slog.Error(fmt.Sprintf("bundle message load failed: %v", err))
+		log.Error("bundle message load failed", err)
 	}
 
 	messages := [...]*i18n.Message{
@@ -80,10 +80,10 @@ func RequestTranslator(lang language.Tag) Translator {
 
 func (m *translator) Translate(messageID string) string {
 	if message, ok := messageByID[messageID]; !ok {
-		slog.Warn("unknown translation message", "messageID", messageID)
+		log.Warn("unknown translation message", "messageID", messageID)
 		return messageID
 	} else if translation, err := m.localizer.Localize(&i18n.LocalizeConfig{DefaultMessage: message}); err != nil {
-		slog.Warn(fmt.Sprintf("translation error: %v", err), "messageID", messageID)
+		log.Warn(fmt.Sprintf("translation error: %v", err), "messageID", messageID)
 		return messageID
 	} else {
 		return translation
@@ -92,10 +92,10 @@ func (m *translator) Translate(messageID string) string {
 
 func (m *translator) TranslateData(messageID string, data map[string]string) string {
 	if message, ok := messageByID[messageID]; !ok {
-		slog.Warn("unknown translation message", "messageID", messageID)
+		log.Warn("unknown translation message", "messageID", messageID)
 		return messageID
 	} else if translation, err := m.localizer.Localize(&i18n.LocalizeConfig{DefaultMessage: message, TemplateData: data}); err != nil {
-		slog.Warn(fmt.Sprintf("translation error: %v", err), "messageID", messageID)
+		log.Warn(fmt.Sprintf("translation error: %v", err), "messageID", messageID)
 		return messageID
 	} else {
 		return translation

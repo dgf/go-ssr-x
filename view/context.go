@@ -2,10 +2,10 @@ package view
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"github.com/dgf/go-ssr-x/locale"
+	"github.com/dgf/go-ssr-x/log"
 )
 
 type ViewContextKey string
@@ -21,7 +21,7 @@ func runLocalized(ctx context.Context, localize func(LocaleContext) string, fall
 	if l, ok := ctx.Value(LocaleContextKey).(LocaleContext); ok {
 		return localize(l)
 	}
-	slog.Warn("view context contains no locale")
+	log.Warn("view context contains no locale")
 	return fallback()
 }
 

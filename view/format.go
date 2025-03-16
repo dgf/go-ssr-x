@@ -5,10 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/yuin/goldmark"
 )
 
@@ -22,7 +22,7 @@ func date(d time.Time) string {
 func markdown(md string) templ.Component {
 	var buf bytes.Buffer
 	if err := goldmark.Convert([]byte(md), &buf); err != nil {
-		slog.Warn(fmt.Sprintf("failed to convert markdown to HTML: %v", err))
+		log.Warn(fmt.Sprintf("failed to convert markdown to HTML: %v", err))
 		return templ.NopComponent
 	}
 
