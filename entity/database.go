@@ -69,9 +69,10 @@ func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 	return task, true, nil
 }
 
-func (d *database) Tasks(order TaskOrder) ([]Task, error) {
+func (d *database) Tasks(order TaskOrder, filter string) ([]Task, error) {
 	var tasks []Task
-	if rows, err := d.db.Query(fmt.Sprintf("%s ORDER BY %s", selectTaskSQL, taskOrderClause(order))); err != nil {
+	query := fmt.Sprintf("%s ORDER BY %s", selectTaskSQL, taskOrderClause(order))
+	if rows, err := d.db.Query(query); err != nil {
 		return tasks, err
 	} else {
 		for rows.Next() {

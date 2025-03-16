@@ -3,6 +3,7 @@ package entity
 import (
 	"cmp"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,13 +51,15 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(order TaskOrder) ([]Task, error) {
+func (m *memory) Tasks(order TaskOrder, filter string) ([]Task, error) {
 	m.RLock()
 	defer m.RUnlock()
 
 	p := make([]Task, 0, len(m.tasks))
 	for _, t := range m.tasks {
-		p = append(p, t)
+		if strings.Contains(t.Subject, filter) {
+			p = append(p, t)
+		}
 	}
 
 	slices.SortStableFunc(p, taskOrderFunc(order))

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/dgf/go-ssr-x/entity"
@@ -44,9 +45,17 @@ func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) tem
 }
 
 func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Component {
+	subject := r.URL.Query().Get("subject")
 	order := entity.TaskOrderOrDefault(r.URL.Query().Get("order"))
-	w.Header().Add("HX-Push-Url", "/tasks?order="+order.String())
-	if tasks, err := ts.storage.Tasks(order); err != nil {
+
+	pushURL := "/tasks?order=" + order.String()
+	if len(strings.TrimSpace(subject)) > 0 {
+		pushURL += "&subject=" + subject
+	}
+
+	w.Header().Add("HX-Push-Url", pushURL)
+
+	if tasks, err := ts.storage.Tasks(order, subject); err != nil {
 		log.Error("task rows access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -55,12 +64,14 @@ func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Com
 }
 
 func (ts *TaskServer) TasksSection(w http.ResponseWriter, r *http.Request) templ.Component {
+	subject := r.URL.Query().Get("subject")
 	order := entity.TaskOrderOrDefault(r.URL.Query().Get("order"))
-	if tasks, err := ts.storage.Tasks(order); err != nil {
+
+	if tasks, err := ts.storage.Tasks(order, subject); err != nil {
 		log.Error("tasks section access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
-		return view.TasksSection(tasks, order)
+		return view.TasksSection(tasks, order, subject)
 	}
 }
 
@@ -82,7 +93,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 	}
 
 	order := entity.TaskCreatedAtDesc
-	if tasks, err := ts.storage.Tasks(order); err != nil {
+	if tasks, err := ts.storage.Tasks(order, ""); err != nil {
 		log.Error("task listing failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -91,21 +102,17 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 			if err := view.SuccessNotify("ok_task_created", idData).Render(ctx, w); err != nil {
 				return err
 			}
-			return view.TasksSection(tasks, order).Render(ctx, w)
+			return view.TasksSection(tasks, order, "").Render(ctx, w)
 		})
 	}
 }
 
 func (ts *TaskServer) ShowTask(w http.ResponseWriter, r *http.Request) templ.Component {
-	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		return view.TaskDetails(task)
-	})
+	return ts.handleTask(w, r, view.TaskDetails)
 }
 
 func (ts *TaskServer) EditTask(w http.ResponseWriter, r *http.Request) templ.Component {
-	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		return view.TaskEditForm(task)
-	})
+	return ts.handleTask(w, r, view.TaskEditForm)
 }
 
 func (ts *TaskServer) DeleteTask(w http.ResponseWriter, r *http.Request) templ.Component {
