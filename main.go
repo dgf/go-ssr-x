@@ -50,10 +50,12 @@ func init() {
 	})
 }
 
-func acceptOrDefault(r *http.Request) language.Tag {
+func acceptLanguageOrDefault(r *http.Request) language.Tag {
 	accept := r.Header.Get("Accept-Language")
 	if tags, _, err := language.ParseAcceptLanguage(accept); err != nil {
 		log.Info("accept language header parse failed", "header", accept)
+		return language.English
+	} else if len(tags) == 0 {
 		return language.English
 	} else {
 		return tags[0]
@@ -63,7 +65,7 @@ func acceptOrDefault(r *http.Request) language.Tag {
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
-		lang := acceptOrDefault(r)
+		lang := acceptLanguageOrDefault(r)
 		ctx := context.WithValue(r.Context(), view.LocaleContextKey, view.LocaleContext{
 			Formatter:  locale.RequestFormatter(lang),
 			Translator: locale.RequestTranslator(lang),
