@@ -10,6 +10,10 @@ other = "Aufruffehler"
 hash = "sha1-bbbb7a8472fa5a7597b5388c18362d437469cc9b"
 other = "Die Aktualisierung der Aufgabe ist aufgrund eines Konflikts fehlgeschlagen. Bitte versuche es erneut."
 
+[database_error]
+hash = "sha1-5c71f54be20e74901dc4f4c6e08185700ccfce30"
+other = "Datenbank Fehler {{.message}}"
+
 [internal_server_error]
 hash = "sha1-ffa5578af85cd8c29d2df2242dc504e3b2ba687d"
 other = "Interner Server Fehler"
@@ -113,3 +117,11 @@ other = "Betreff"
 [tasks_loading]
 hash = "sha1-14b85fa8e87f846f757eaccda09761641b397f01"
 other = "lade"
+
+[task_order]
+hash = "sha1-cce55e4309a753985bdd21919395fdc17daa11e4"
+other = "Sortierung"
+
+[task_subject_filter]
+hash = "sha1-8634b3edde90aff573bd088241f38ac713075e57"
+other = "Betreff filtern"

@@ -205,49 +205,43 @@ templ TaskTable(tasks []entity.Task) {
 templ TasksSection(tasks []entity.Task, order entity.TaskOrder, subject string) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
-			<div class="py-1">
-				if len(tasks) > 0 {
-					<label for="subject" class="capitalize">{ Translate(ctx, "task_subject") }</label>
+			<form
+				hx-get="/tasks/rows"
+				hx-target="#task-rows"
+				hx-swap="innerHTML"
+				hx-indicator="#tasks-loading"
+				hx-push-url="true"
+				hx-trigger="input delay:300ms from:[type='search'], change from:select"
+				class="flex flex-row items-center gap-4"
+			>
+				<div class="py-1">
+					<label for="subject" class="capitalize pr-2">{ Translate(ctx, "task_subject") }</label>
 					<input
 						name="subject"
-						type="subject"
+						type="search"
 						value={ subject }
-						placeholder="subject filter ..."
-						hx-get="/tasks/rows"
-						hx-target="#task-rows"
-						hx-swap="innerHTML"
-						hx-indicator="#tasks-loading"
-						hx-push-url="true"
-						hx-trigger="input changed delay:300ms, keyup[key=='Enter']"
+						placeholder={ Translate(ctx, "task_subject_filter") + " ..." }
 						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 					/>
-				}
-			</div>
-			<div class="py-1">
-				if len(tasks) > 0 {
-					<form autocomplete="off">
-						<select
-							name="order"
-							hx-get="/tasks/rows"
-							hx-target="#task-rows"
-							hx-swap="innerHTML"
-							hx-indicator="#tasks-loading"
-							hx-push-url="true"
-							class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
-						>
-							@optionList(order.String(), []Option{
-								{value: "created-desc", label: Translate(ctx, "task_order_created_desc")},
-								{value: "created-asc", label: Translate(ctx, "task_order_created_asc")},
-								{value: "due-date-asc", label: Translate(ctx, "task_order_due_date_asc")},
-								{value: "due-date-desc", label: Translate(ctx, "task_order_due_date_desc")},
-								{value: "subject-asc", label: Translate(ctx, "task_order_subject_asc")},
-								{value: "subject-desc", label: Translate(ctx, "task_order_subject_desc")},
-							})
-						</select>
-					</form>
-				}
-			</div>
-			<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
+				</div>
+				<div class="py-1">
+					<label for="order" class="capitalize pr-2">{ Translate(ctx, "task_order") }</label>
+					<select
+						name="order"
+						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
+					>
+						@optionList(order.String(), []Option{
+							{value: "created-desc", label: Translate(ctx, "task_order_created_desc")},
+							{value: "created-asc", label: Translate(ctx, "task_order_created_asc")},
+							{value: "due-date-asc", label: Translate(ctx, "task_order_due_date_asc")},
+							{value: "due-date-desc", label: Translate(ctx, "task_order_due_date_desc")},
+							{value: "subject-asc", label: Translate(ctx, "task_order_subject_asc")},
+							{value: "subject-desc", label: Translate(ctx, "task_order_subject_desc")},
+						})
+					</select>
+				</div>
+				<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
+			</form>
 			<button
 				hx-get="/tasks/new"
 				hx-push-url="true"
@@ -256,8 +250,6 @@ templ TasksSection(tasks []entity.Task, order entity.TaskOrder, subject string) 
 				{ Translate(ctx, "task_add") }
 			</button>
 		</div>
-		if len(tasks) > 0 {
-			@TaskTable(tasks)
-		}
+		@TaskTable(tasks)
 	</section>
 }

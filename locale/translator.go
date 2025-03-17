@@ -54,6 +54,7 @@ func init() {
 		{ID: "task_description", Other: "description"},
 		{ID: "task_due_date", Other: "due date"},
 		{ID: "task_edit", Other: "edit"},
+		{ID: "task_order", Other: "order"},
 		{ID: "task_order_created_asc", Other: "Oldest (created)"},
 		{ID: "task_order_created_desc", Other: "Newest (created)"},
 		{ID: "task_order_due_date_asc", Other: "Urgent (due date)"},
@@ -63,6 +64,7 @@ func init() {
 		{ID: "task_save", Other: "save"},
 		{ID: "task_saving", Other: "saving"},
 		{ID: "task_subject", Other: "subject"},
+		{ID: "task_subject_filter", Other: "subject filter"},
 		{ID: "tasks_loading", Other: "loading"},
 	}
 
