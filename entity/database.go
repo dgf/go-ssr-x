@@ -2,8 +2,8 @@ package entity
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -19,9 +19,10 @@ type database struct {
 const (
 	insertTaskSQL = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 	countTasksSQL = "SELECT count(*) FROM task"
-	selectTaskSQL = "SELECT id, created_at, due_date, subject, description FROM task"
+	detailTaskSQL = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 	deleteTaskSQL = "DELETE FROM task WHERE id = $1"
 	updateTaskSQL = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
+	listTasksSQL  = "SELECT id, created_at, due_date, subject, description FROM task WHERE subject LIKE $1 ORDER BY $2"
 )
 
 func NewDatabase(connStr string) Storage {
@@ -59,7 +60,7 @@ func (d *database) DeleteTask(id uuid.UUID) error {
 
 func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 	var task Task
-	rows := d.db.QueryRow(fmt.Sprintf("%s WHERE id = $1", selectTaskSQL), id)
+	rows := d.db.QueryRow(detailTaskSQL, id)
 	if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject, &task.Desciption); err != nil {
 		if err == sql.ErrNoRows {
 			return task, false, nil
@@ -71,8 +72,7 @@ func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 
 func (d *database) Tasks(order TaskOrder, filter string) ([]Task, error) {
 	var tasks []Task
-	query := fmt.Sprintf("%s ORDER BY %s", selectTaskSQL, taskOrderClause(order))
-	if rows, err := d.db.Query(query); err != nil {
+	if rows, err := d.db.Query(listTasksSQL, likeArg(filter), taskOrderClause(order)); err != nil {
 		return tasks, err
 	} else {
 		for rows.Next() {
@@ -91,6 +91,10 @@ func (d *database) UpdateTask(id uuid.UUID, dueDate time.Time, subject, descript
 		return Task{}, false, err
 	}
 	return d.Task(id)
+}
+
+func likeArg(arg string) string {
+	return "%" + strings.ReplaceAll(arg, "%", "") + "%"
 }
 
 func taskOrderClause(order TaskOrder) string {
