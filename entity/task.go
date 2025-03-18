@@ -7,10 +7,17 @@ import (
 	"github.com/google/uuid"
 )
 
+type TaskOverview struct {
+	CreatedAt time.Time
+	DueDate   time.Time
+	Subject   string
+	Id        uuid.UUID
+}
+
 type Task struct {
-	CreatedAt  time.Time
 	DueDate    time.Time
 	Subject    string
+	CreatedAt  time.Time
 	Desciption string
 	Id         uuid.UUID
 }

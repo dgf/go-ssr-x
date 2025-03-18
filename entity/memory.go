@@ -51,14 +51,19 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(order TaskOrder, filter string) ([]Task, error) {
+func (m *memory) Tasks(order TaskOrder, filter string) ([]TaskOverview, error) {
 	m.RLock()
 	defer m.RUnlock()
 
-	p := make([]Task, 0, len(m.tasks))
+	p := make([]TaskOverview, 0, len(m.tasks))
 	for _, t := range m.tasks {
 		if strings.Contains(t.Subject, filter) {
-			p = append(p, t)
+			p = append(p, TaskOverview{
+				Id:        t.Id,
+				CreatedAt: t.CreatedAt,
+				DueDate:   t.DueDate,
+				Subject:   t.Subject,
+			})
 		}
 	}
 
@@ -89,35 +94,35 @@ func (m *memory) UpdateTask(id uuid.UUID, dueDate time.Time, subject, descriptio
 	}
 }
 
-func taskOrderFunc(order TaskOrder) func(i, j Task) int {
+func taskOrderFunc(order TaskOrder) func(i, j TaskOverview) int {
 	switch order {
 	case TaskCreatedAtAsc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(i.CreatedAt.String(), j.CreatedAt.String())
 		}
 	case TaskCreatedAtDesc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(j.CreatedAt.String(), i.CreatedAt.String())
 		}
 	case TaskDueDateAsc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(i.DueDate.String(), j.DueDate.String())
 		}
 	case TaskDueDateDesc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(j.DueDate.String(), i.DueDate.String())
 		}
 	case TaskSubjectAsc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(i.Subject, j.Subject)
 		}
 	case TaskSubjectDesc:
-		return func(i, j Task) int {
+		return func(i, j TaskOverview) int {
 			return cmp.Compare(j.Subject, i.Subject)
 		}
 	}
 
-	return func(i, j Task) int {
+	return func(i, j TaskOverview) int {
 		return cmp.Compare(i.Id.String(), j.Id.String())
 	}
 }

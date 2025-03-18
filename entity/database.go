@@ -22,7 +22,7 @@ const (
 	detailTaskSQL = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 	deleteTaskSQL = "DELETE FROM task WHERE id = $1"
 	updateTaskSQL = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
-	listTasksSQL  = "SELECT id, created_at, due_date, subject, description FROM task WHERE subject LIKE $1 ORDER BY $2"
+	listTasksSQL  = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1 ORDER BY $2"
 )
 
 func NewDatabase(connStr string) Storage {
@@ -70,14 +70,14 @@ func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 	return task, true, nil
 }
 
-func (d *database) Tasks(order TaskOrder, filter string) ([]Task, error) {
-	var tasks []Task
+func (d *database) Tasks(order TaskOrder, filter string) ([]TaskOverview, error) {
+	var tasks []TaskOverview
 	if rows, err := d.db.Query(listTasksSQL, likeArg(filter), taskOrderClause(order)); err != nil {
 		return tasks, err
 	} else {
 		for rows.Next() {
-			var task Task
-			if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject, &task.Desciption); err != nil {
+			var task TaskOverview
+			if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject); err != nil {
 				return tasks, err
 			}
 			tasks = append(tasks, task)

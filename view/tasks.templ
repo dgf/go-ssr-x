@@ -144,7 +144,7 @@ templ TaskDetails(task entity.Task) {
 	</section>
 }
 
-templ TaskRow(task entity.Task) {
+templ TaskRow(task entity.TaskOverview) {
 	<tr
 		id={ task.Id.String() }
 		data-created-at={ task.CreatedAt.Format(time.DateTime) }
@@ -178,13 +178,13 @@ templ TaskRow(task entity.Task) {
 	</tr>
 }
 
-templ TaskRows(tasks []entity.Task) {
+templ TaskRows(tasks []entity.TaskOverview) {
 	for _, task := range tasks {
 		@TaskRow(task)
 	}
 }
 
-templ TaskTable(tasks []entity.Task) {
+templ TaskTable(tasks []entity.TaskOverview) {
 	<div class="py-3">
 		<table class="w-full">
 			<thead class="bg-stone-400 text-left font-semibold dark:bg-stone-600">
@@ -202,7 +202,7 @@ templ TaskTable(tasks []entity.Task) {
 	</div>
 }
 
-templ TasksSection(tasks []entity.Task, order entity.TaskOrder, subject string) {
+templ TasksSection(tasks []entity.TaskOverview, order entity.TaskOrder, subject string) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<form
