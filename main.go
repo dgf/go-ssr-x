@@ -65,6 +65,7 @@ func acceptLanguageOrDefault(r *http.Request) language.Tag {
 func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		lang := acceptLanguageOrDefault(r)
 		ctx := context.WithValue(r.Context(), view.LocaleContextKey, view.LocaleContext{
 			Formatter:  locale.RequestFormatter(lang),
@@ -81,6 +82,22 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 	})
 }
 
+func PanicRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				if e, ok := err.(error); ok {
+					log.Error("panic recovery uncaught error", e)
+				} else {
+					log.Error("panic recovery uncaught error", fmt.Errorf("%v", err))
+				}
+			}
+		}()
+		next.ServeHTTP(w, req)
+	})
+}
+
 func main() {
 	parseFlags()
 	if storageType == "memory" {
@@ -93,7 +110,7 @@ func main() {
 	}
 
 	if taskCount, err := storage.TaskCount(); err != nil {
-		log.Error("initial database query failed", err)
+		log.Error("initial storage access failed", err)
 		os.Exit(7)
 	} else if taskCount == 0 {
 		log.Info("initialize storage with some tasks")
@@ -121,10 +138,21 @@ func main() {
 			return taskServer.TasksSection(w, r)
 		}
 
+		if r.URL.Path == "/error" {
+			panic("don't panic!")
+		}
+
 		w.WriteHeader(404)
 		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 
 	log.Info("Listening on :3000")
-	log.Error("listen and serve failed", http.ListenAndServe("0.0.0.0:3000", mux))
+	server := http.Server{
+		Addr:         "0.0.0.0:3000",
+		Handler:      PanicRecovery(mux),
+		WriteTimeout: 13 * time.Second,
+		ReadTimeout:  17 * time.Second,
+		IdleTimeout:  37 * time.Second,
+	}
+	log.Error("listen and serve failed", server.ListenAndServe())
 }
