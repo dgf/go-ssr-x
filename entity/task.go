@@ -7,6 +7,14 @@ import (
 	"github.com/google/uuid"
 )
 
+type Task struct {
+	Id         uuid.UUID
+	CreatedAt  time.Time
+	DueDate    time.Time
+	Subject    string
+	Desciption string
+}
+
 type TaskOverview struct {
 	CreatedAt time.Time
 	DueDate   time.Time
@@ -14,43 +22,29 @@ type TaskOverview struct {
 	Id        uuid.UUID
 }
 
-type Task struct {
-	DueDate    time.Time
-	Subject    string
-	CreatedAt  time.Time
-	Desciption string
-	Id         uuid.UUID
-}
-
-type TaskOrder int64
+type TaskSort int64
 
 const (
-	TaskCreatedAtAsc TaskOrder = iota
-	TaskCreatedAtDesc
-	TaskDueDateAsc
-	TaskDueDateDesc
-	TaskSubjectAsc
-	TaskSubjectDesc
-	TaskDefaultOrder = TaskDueDateAsc
+	TaskSortCreatedAt TaskSort = iota
+	TaskSortDueDate
+	TaskSortSubject
+	TaskSortDefault = TaskSortDueDate
 )
 
-var taskOrderLabels = []string{
-	"created-asc",
-	"created-desc",
-	"due-date-asc",
-	"due-date-desc",
-	"subject-asc",
-	"subject-desc",
+var taskSortKeys = []string{
+	"created-at",
+	"due-date",
+	"subject",
 }
 
-func (o TaskOrder) String() string {
-	return taskOrderLabels[o]
+func (o TaskSort) String() string {
+	return taskSortKeys[o]
 }
 
-func TaskOrderOrDefault(order string) TaskOrder {
-	o := slices.Index(taskOrderLabels, order)
+func TaskSortOrDefault(sort string) TaskSort {
+	o := slices.Index(taskSortKeys, sort)
 	if o == -1 {
-		return TaskDefaultOrder
+		return TaskSortDefault
 	}
-	return TaskOrder(o)
+	return TaskSort(o)
 }

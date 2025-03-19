@@ -51,7 +51,7 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(order TaskOrder, filter string) ([]TaskOverview, error) {
+func (m *memory) Tasks(filter string, sort TaskSort, order SortOrder) ([]TaskOverview, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -67,7 +67,7 @@ func (m *memory) Tasks(order TaskOrder, filter string) ([]TaskOverview, error) {
 		}
 	}
 
-	slices.SortStableFunc(p, taskOrderFunc(order))
+	slices.SortStableFunc(p, taskSortFunc(sort, order))
 	return p, nil
 }
 
@@ -94,35 +94,35 @@ func (m *memory) UpdateTask(id uuid.UUID, dueDate time.Time, subject, descriptio
 	}
 }
 
-func taskOrderFunc(order TaskOrder) func(i, j TaskOverview) int {
-	switch order {
-	case TaskCreatedAtAsc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(i.CreatedAt.String(), j.CreatedAt.String())
+func taskSortValue(sort TaskSort) func(TaskOverview) string {
+	switch sort {
+	case TaskSortCreatedAt:
+		return func(t TaskOverview) string {
+			return t.CreatedAt.String()
 		}
-	case TaskCreatedAtDesc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(j.CreatedAt.String(), i.CreatedAt.String())
+	case TaskSortDueDate:
+		return func(t TaskOverview) string {
+			return t.DueDate.String()
 		}
-	case TaskDueDateAsc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(i.DueDate.String(), j.DueDate.String())
-		}
-	case TaskDueDateDesc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(j.DueDate.String(), i.DueDate.String())
-		}
-	case TaskSubjectAsc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(i.Subject, j.Subject)
-		}
-	case TaskSubjectDesc:
-		return func(i, j TaskOverview) int {
-			return cmp.Compare(j.Subject, i.Subject)
+	case TaskSortSubject:
+		return func(t TaskOverview) string {
+			return t.Subject
 		}
 	}
 
+	return func(t TaskOverview) string {
+		return t.Id.String()
+	}
+}
+
+func taskSortFunc(sort TaskSort, order SortOrder) func(i, j TaskOverview) int {
+	value := taskSortValue(sort)
+	if order == AscendingOrder {
+		return func(i, j TaskOverview) int {
+			return cmp.Compare(value(i), value(j))
+		}
+	}
 	return func(i, j TaskOverview) int {
-		return cmp.Compare(i.Id.String(), j.Id.String())
+		return cmp.Compare(value(j), value(i))
 	}
 }

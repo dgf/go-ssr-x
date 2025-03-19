@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 
 	"github.com/a-h/templ"
 	"github.com/dgf/go-ssr-x/entity"
@@ -45,17 +45,23 @@ func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) tem
 }
 
 func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Component {
+	order := entity.SortOrderOrDefault(r.URL.Query().Get("order"))
+	sort := entity.TaskSortOrDefault(r.URL.Query().Get("sort"))
 	subject := r.URL.Query().Get("subject")
-	order := entity.TaskOrderOrDefault(r.URL.Query().Get("order"))
 
-	pushURL := "/tasks?order=" + order.String()
-	if len(strings.TrimSpace(subject)) > 0 {
-		pushURL += "&subject=" + subject
+	query := &url.Values{}
+	query.Add("sort", sort.String())
+	query.Add("order", order.String())
+	query.Add("subject", subject)
+
+	pushURL := &url.URL{
+		Path:     "/tasks",
+		RawQuery: query.Encode(),
 	}
 
-	w.Header().Add("HX-Push-Url", pushURL)
+	w.Header().Add("HX-Push-Url", pushURL.String())
 
-	if tasks, err := ts.storage.Tasks(order, subject); err != nil {
+	if tasks, err := ts.storage.Tasks(subject, sort, order); err != nil {
 		log.Error("task rows access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -64,14 +70,15 @@ func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Com
 }
 
 func (ts *TaskServer) TasksSection(w http.ResponseWriter, r *http.Request) templ.Component {
+	order := entity.SortOrderOrDefault(r.URL.Query().Get("order"))
+	sort := entity.TaskSortOrDefault(r.URL.Query().Get("sort"))
 	subject := r.URL.Query().Get("subject")
-	order := entity.TaskOrderOrDefault(r.URL.Query().Get("order"))
 
-	if tasks, err := ts.storage.Tasks(order, subject); err != nil {
+	if tasks, err := ts.storage.Tasks(subject, sort, order); err != nil {
 		log.Error("tasks section access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
-		return view.TasksSection(tasks, order, subject)
+		return view.TasksSection(tasks, subject, sort, order)
 	}
 }
 
@@ -92,8 +99,9 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 		return clientError(w, r, http.StatusInternalServerError, "database_error", messageData)
 	}
 
-	order := entity.TaskCreatedAtDesc
-	if tasks, err := ts.storage.Tasks(order, ""); err != nil {
+	sort := entity.TaskSortDefault
+	order := entity.AscendingOrder
+	if tasks, err := ts.storage.Tasks("", sort, order); err != nil {
 		log.Error("task listing failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -102,7 +110,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 			if err := view.SuccessNotify("ok_task_created", idData).Render(ctx, w); err != nil {
 				return err
 			}
-			return view.TasksSection(tasks, order, "").Render(ctx, w)
+			return view.TasksSection(tasks, "", sort, order).Render(ctx, w)
 		})
 	}
 }

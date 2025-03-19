@@ -7,6 +7,12 @@ type Option struct {
 
 templ optionList(selected string, options []Option) {
 	for _, option := range options {
-		<option value={ option.value } selected?={ selected==option.value }>{ option.label }</option>
+		<option
+			value={ option.value }
+			selected?={ selected==option.value }
+			class="capitalize"
+		>
+			{ option.label }
+		</option>
 	}
 }

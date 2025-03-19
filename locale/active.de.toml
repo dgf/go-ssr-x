@@ -34,6 +34,14 @@ other = "Aufgabe '{{.id}}' erstellt."
 hash = "sha1-f2fb86ee8229526423409196f52eb7fecc9f9204"
 other = "Aufgabe '{{.id}}' aktualisiert."
 
+[order_ascending]
+hash = "sha1-f393cc9965c77bddebdb58ad87da608260555cae"
+other = "aufsteigend"
+
+[order_descending]
+hash = "sha1-486093918ff37dd24e66995b21ec41caec0cbbf3"
+other = "absteigend"
+
 [page_title]
 hash = "sha1-54bd9e0bc82a8befa22bcd37c15fbabaaad4172c"
 other = "Meine Aufgaben"
@@ -78,29 +86,9 @@ other = "fällig am"
 hash = "sha1-9ead47a82a0d25985f22f10651d1f93b3abba317"
 other = "bearbeiten"
 
-[task_order_created_asc]
-hash = "sha1-f1bf0887867ecfed5619294b28ae6c4909453baf"
-other = "Älteste (Erstellungsdatum)"
-
-[task_order_created_desc]
-hash = "sha1-3ba46ad1afbb31878263bf442cb228752d3792b8"
-other = "Neuste (Erstellungsdatum)"
-
-[task_order_due_date_asc]
-hash = "sha1-d2a54cb41dc5f7b90a5b89189cb5657f97d1d778"
-other = "Dringenste (Fälligkeit)"
-
-[task_order_due_date_desc]
-hash = "sha1-79910e8d80d81c657d96706d08bce548a1e478d8"
-other = "Unwichtigste (Fälligkeit)"
-
-[task_order_subject_asc]
-hash = "sha1-b36050d68e826230a426cce66a71596fa376a9d8"
-other = "Betreff (alphabetisch)"
-
-[task_order_subject_desc]
-hash = "sha1-3fa845f794eeedef15331b0e9d2b57269f7370fa"
-other = "Betreff (rückwärts)"
+[task_order]
+hash = "sha1-cce55e4309a753985bdd21919395fdc17daa11e4"
+other = "Sortierung"
 
 [task_save]
 hash = "sha1-13a4a11319d31c1b323d5774f44240a9ffc984d0"
@@ -110,18 +98,18 @@ other = "speichern"
 hash = "sha1-e7912bf7c891d60e9c897cc1d565167f92ffb9a8"
 other = "speichere"
 
+[task_sort]
+hash = "sha1-98c4b8f6e2d770a0f2b54233669d65ff6eddc472"
+other = "Sortierung"
+
 [task_subject]
 hash = "sha1-335ce16b3fe40346cc3af2a4efce2ef04bc4ea55"
 other = "Betreff"
 
-[tasks_loading]
-hash = "sha1-14b85fa8e87f846f757eaccda09761641b397f01"
-other = "lade"
-
-[task_order]
-hash = "sha1-cce55e4309a753985bdd21919395fdc17daa11e4"
-other = "Sortierung"
-
 [task_subject_filter]
 hash = "sha1-8634b3edde90aff573bd088241f38ac713075e57"
 other = "Betreff filtern"
+
+[tasks_loading]
+hash = "sha1-14b85fa8e87f846f757eaccda09761641b397f01"
+other = "lade"

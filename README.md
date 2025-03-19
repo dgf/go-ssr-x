@@ -50,6 +50,12 @@ cd locale
 goi18n merge active.*.toml
 ```
 
+Provide new translations and finally merge, e.g. `translate.*.toml`
+
+```sh
+goi18n merge active.*.toml translate.*.toml
+```
+
 ## Use PostgreSQL
 
 Configure a server and create a database, e.g. Docker based

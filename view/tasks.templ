@@ -202,7 +202,7 @@ templ TaskTable(tasks []entity.TaskOverview) {
 	</div>
 }
 
-templ TasksSection(tasks []entity.TaskOverview, order entity.TaskOrder, subject string) {
+templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.TaskSort, order entity.SortOrder) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<form
@@ -225,18 +225,27 @@ templ TasksSection(tasks []entity.TaskOverview, order entity.TaskOrder, subject 
 					/>
 				</div>
 				<div class="py-1">
+					<label for="sort" class="capitalize pr-2">{ Translate(ctx, "task_sort") }</label>
+					<select
+						name="sort"
+						class="capitalize rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
+					>
+						@optionList(sort.String(), []Option{
+							{value: entity.TaskSortCreatedAt.String(), label: Translate(ctx, "task_created_at")},
+							{value: entity.TaskSortDueDate.String(), label: Translate(ctx, "task_due_date")},
+							{value: entity.TaskSortSubject.String(), label: Translate(ctx, "task_subject")},
+						})
+					</select>
+				</div>
+				<div class="py-1">
 					<label for="order" class="capitalize pr-2">{ Translate(ctx, "task_order") }</label>
 					<select
 						name="order"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
 						@optionList(order.String(), []Option{
-							{value: "created-desc", label: Translate(ctx, "task_order_created_desc")},
-							{value: "created-asc", label: Translate(ctx, "task_order_created_asc")},
-							{value: "due-date-asc", label: Translate(ctx, "task_order_due_date_asc")},
-							{value: "due-date-desc", label: Translate(ctx, "task_order_due_date_desc")},
-							{value: "subject-asc", label: Translate(ctx, "task_order_subject_asc")},
-							{value: "subject-desc", label: Translate(ctx, "task_order_subject_desc")},
+							{value: entity.AscendingOrder.String(), label: Translate(ctx, "order_ascending")},
+							{value: entity.DescendingOrder.String(), label: Translate(ctx, "order_descending")},
 						})
 					</select>
 				</div>

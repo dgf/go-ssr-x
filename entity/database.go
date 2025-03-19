@@ -2,6 +2,7 @@ package entity
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -22,7 +23,7 @@ const (
 	detailTaskSQL = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 	deleteTaskSQL = "DELETE FROM task WHERE id = $1"
 	updateTaskSQL = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
-	listTasksSQL  = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1 ORDER BY $2"
+	listTasksSQL  = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
 )
 
 func NewDatabase(connStr string) Storage {
@@ -44,8 +45,7 @@ func (d *database) AddTask(dueDate time.Time, subject, description string) (uuid
 
 func (d *database) TaskCount() (int, error) {
 	var count int
-	r := d.db.QueryRow(countTasksSQL)
-	if err := r.Scan(&count); err != nil {
+	if err := d.db.QueryRow(countTasksSQL).Scan(&count); err != nil {
 		return 0, err
 	}
 	return count, nil
@@ -70,9 +70,12 @@ func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 	return task, true, nil
 }
 
-func (d *database) Tasks(order TaskOrder, filter string) ([]TaskOverview, error) {
+func (d *database) Tasks(filter string, sort TaskSort, order SortOrder) ([]TaskOverview, error) {
+	sortOrder := taskOrderClause(sort, order)
+	query := fmt.Sprintf("%s ORDER BY %s", listTasksSQL, sortOrder)
+
 	var tasks []TaskOverview
-	if rows, err := d.db.Query(listTasksSQL, likeArg(filter), taskOrderClause(order)); err != nil {
+	if rows, err := d.db.Query(query, likeArg(filter)); err != nil {
 		return tasks, err
 	} else {
 		for rows.Next() {
@@ -97,21 +100,18 @@ func likeArg(arg string) string {
 	return "%" + strings.ReplaceAll(arg, "%", "") + "%"
 }
 
-func taskOrderClause(order TaskOrder) string {
-	switch order {
-	case TaskCreatedAtAsc:
-		return "created_at ASC"
-	case TaskCreatedAtDesc:
-		return "created_at DESC"
-	case TaskDueDateAsc:
-		return "due_date ASC"
-	case TaskDueDateDesc:
-		return "due_date DESC"
-	case TaskSubjectAsc:
-		return "subject ASC"
-	case TaskSubjectDesc:
-		return "subject DESC"
+func taskSort(sort TaskSort) string {
+	switch sort {
+	case TaskSortCreatedAt:
+		return "created_at"
+	case TaskSortDueDate:
+		return "due_date"
+	case TaskSortSubject:
+		return "subject"
 	}
+	return "id"
+}
 
-	return "id ASC"
+func taskOrderClause(sort TaskSort, order SortOrder) string {
+	return fmt.Sprintf("%s %s", taskSort(sort), strings.ToUpper(order.String()))
 }
