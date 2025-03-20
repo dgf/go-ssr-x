@@ -51,14 +51,14 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(filter string, sort TaskSort, order SortOrder) ([]TaskOverview, error) {
+func (m *memory) Tasks(page TaskPage) ([]TaskOverview, error) {
 	m.RLock()
 	defer m.RUnlock()
 
-	p := make([]TaskOverview, 0, len(m.tasks))
+	tasks := make([]TaskOverview, 0, len(m.tasks))
 	for _, t := range m.tasks {
-		if strings.Contains(t.Subject, filter) {
-			p = append(p, TaskOverview{
+		if strings.Contains(t.Subject, page.Filter) {
+			tasks = append(tasks, TaskOverview{
 				Id:        t.Id,
 				CreatedAt: t.CreatedAt,
 				DueDate:   t.DueDate,
@@ -67,8 +67,14 @@ func (m *memory) Tasks(filter string, sort TaskSort, order SortOrder) ([]TaskOve
 		}
 	}
 
-	slices.SortStableFunc(p, taskSortFunc(sort, order))
-	return p, nil
+	slices.SortStableFunc(tasks, taskSortFunc(page.Sort, page.Order))
+
+	start := (page.Page - 1) * page.Size
+	if start > len(tasks) {
+		return []TaskOverview{}, nil
+	}
+
+	return tasks[start:min(start+page.Size, len(tasks))], nil
 }
 
 func (m *memory) DeleteTask(id uuid.UUID) error {

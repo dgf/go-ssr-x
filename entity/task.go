@@ -24,11 +24,20 @@ type TaskOverview struct {
 
 type TaskSort int64
 
+type TaskPage struct {
+	Page   int
+	Size   int
+	Sort   TaskSort
+	Order  SortOrder
+	Filter string
+}
+
 const (
 	TaskSortCreatedAt TaskSort = iota
 	TaskSortDueDate
 	TaskSortSubject
-	TaskSortDefault = TaskSortDueDate
+	TaskSortDefault     = TaskSortDueDate
+	TaskPageDefaultSize = 10
 )
 
 var taskSortKeys = []string{

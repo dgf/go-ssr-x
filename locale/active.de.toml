@@ -42,6 +42,14 @@ other = "aufsteigend"
 hash = "sha1-486093918ff37dd24e66995b21ec41caec0cbbf3"
 other = "absteigend"
 
+[page_number]
+hash = "sha1-767013ce0ee0f6d7a07587912eba3104cfaabc15"
+other = "Seite"
+
+[page_size]
+hash = "sha1-89368e1d68015693ab48ee189d0632cb5d6edfb3"
+other = "Anzahl"
+
 [page_title]
 hash = "sha1-54bd9e0bc82a8befa22bcd37c15fbabaaad4172c"
 other = "Meine Aufgaben"

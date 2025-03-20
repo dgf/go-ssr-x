@@ -2,6 +2,7 @@ package view
 
 import "github.com/dgf/go-ssr-x/entity"
 import "time"
+import "strconv"
 
 templ TaskCreateForm() {
 	<form
@@ -202,7 +203,7 @@ templ TaskTable(tasks []entity.TaskOverview) {
 	</div>
 }
 
-templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.TaskSort, order entity.SortOrder) {
+templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<form
@@ -211,7 +212,7 @@ templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.Task
 				hx-swap="innerHTML"
 				hx-indicator="#tasks-loading"
 				hx-push-url="true"
-				hx-trigger="input delay:300ms from:[type='search'], change from:select"
+				hx-trigger="input delay:300ms from:[type='search'], input delay:100ms from:[type='number'], change from:select"
 				class="flex flex-row items-center gap-4"
 			>
 				<div class="py-1">
@@ -219,7 +220,7 @@ templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.Task
 					<input
 						name="subject"
 						type="search"
-						value={ subject }
+						value={ page.Filter }
 						placeholder={ Translate(ctx, "task_subject_filter") + " ..." }
 						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 					/>
@@ -230,7 +231,7 @@ templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.Task
 						name="sort"
 						class="capitalize rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
-						@optionList(sort.String(), []Option{
+						@optionList(page.Sort.String(), []Option{
 							{value: entity.TaskSortCreatedAt.String(), label: Translate(ctx, "task_created_at")},
 							{value: entity.TaskSortDueDate.String(), label: Translate(ctx, "task_due_date")},
 							{value: entity.TaskSortSubject.String(), label: Translate(ctx, "task_subject")},
@@ -243,9 +244,33 @@ templ TasksSection(tasks []entity.TaskOverview, subject string, sort entity.Task
 						name="order"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
-						@optionList(order.String(), []Option{
+						@optionList(page.Order.String(), []Option{
 							{value: entity.AscendingOrder.String(), label: Translate(ctx, "order_ascending")},
 							{value: entity.DescendingOrder.String(), label: Translate(ctx, "order_descending")},
+						})
+					</select>
+				</div>
+				<div class="py-1">
+					<label for="page" class="capitalize pr-2">{ Translate(ctx, "page_number") }</label>
+					<input
+						name="page"
+						type="number"
+						step="1"
+						min="1"
+						value={ strconv.Itoa(page.Page) }
+						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
+					/>
+				</div>
+				<div class="py-1">
+					<label for="size" class="capitalize pr-2">{ Translate(ctx, "page_size") }</label>
+					<select
+						name="size"
+						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
+					>
+						@optionList(strconv.Itoa(page.Size), []Option{
+							{value: "5", label: "5"},
+							{value: "10", label: "10"},
+							{value: "25", label: "25"},
 						})
 					</select>
 				</div>

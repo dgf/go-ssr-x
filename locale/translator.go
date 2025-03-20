@@ -45,6 +45,8 @@ func init() {
 		{ID: "ok_task_updated", Other: "Task '{{.id}}' updated."},
 		{ID: "order_ascending", Other: "ascending"},
 		{ID: "order_descending", Other: "descending"},
+		{ID: "page_number", Other: "page"},
+		{ID: "page_size", Other: "size"},
 		{ID: "page_title", Other: "My Tasks"},
 		{ID: "task_add", Other: "add"},
 		{ID: "task_back", Other: "back"},
