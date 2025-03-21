@@ -96,7 +96,7 @@ other = "bearbeiten"
 
 [task_order]
 hash = "sha1-cce55e4309a753985bdd21919395fdc17daa11e4"
-other = "Sortierung"
+other = "Reihenfolge"
 
 [task_save]
 hash = "sha1-13a4a11319d31c1b323d5774f44240a9ffc984d0"

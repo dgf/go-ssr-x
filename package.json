@@ -8,7 +8,8 @@
     "watch": "tailwindcss build -o assets/css/tailwind.css --watch"
   },
   "dependencies": {
-    "htmx.org": "1.9.12"
+    "htmx.org": "1.9.12",
+    "hyperscript.org": "0.9.14"
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.16",

@@ -207,17 +207,19 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<form
+				id="task-query-form"
 				hx-get="/tasks/rows"
 				hx-target="#task-rows"
 				hx-swap="innerHTML"
 				hx-indicator="#tasks-loading"
 				hx-push-url="true"
-				hx-trigger="input delay:300ms from:[type='search'], input delay:100ms from:[type='number'], change from:select"
+				hx-trigger="input delay:300ms from:[type='search'], input delay:100ms from:[type='number'], change from:[type='number'], change from:select"
 				class="flex flex-row items-center gap-4"
 			>
-				<div class="py-1">
-					<label for="subject" class="capitalize pr-2">{ Translate(ctx, "task_subject") }</label>
+				<div class="flex flex-col py-1">
+					<label for="task-query-subject" class="capitalize pr-2">{ Translate(ctx, "task_subject") }</label>
 					<input
+						id="task-query-subject"
 						name="subject"
 						type="search"
 						value={ page.Filter }
@@ -225,9 +227,10 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 					/>
 				</div>
-				<div class="py-1">
-					<label for="sort" class="capitalize pr-2">{ Translate(ctx, "task_sort") }</label>
+				<div class="flex flex-col py-1">
+					<label for="task-query-sort" class="capitalize pr-2">{ Translate(ctx, "task_sort") }</label>
 					<select
+						id="task-query-sort"
 						name="sort"
 						class="capitalize rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
@@ -238,9 +241,10 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						})
 					</select>
 				</div>
-				<div class="py-1">
-					<label for="order" class="capitalize pr-2">{ Translate(ctx, "task_order") }</label>
+				<div class="flex flex-col py-1">
+					<label for="task-query-order" class="capitalize pr-2">{ Translate(ctx, "task_order") }</label>
 					<select
+						id="task-query-order"
 						name="order"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
@@ -250,20 +254,35 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						})
 					</select>
 				</div>
-				<div class="py-1">
-					<label for="page" class="capitalize pr-2">{ Translate(ctx, "page_number") }</label>
-					<input
-						name="page"
-						type="number"
-						step="1"
-						min="1"
-						value={ strconv.Itoa(page.Page) }
-						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
-					/>
+				<div class="flex flex-col py-1">
+					<label for="task-query-page" class="capitalize pr-2">{ Translate(ctx, "page_number") }</label>
+					<div>
+						<button
+							type="button"
+							_="on click if #task-query-page.value is greater than 1 decrement #task-query-page.value then trigger change on #task-query-page"
+							class="rounded-full bg-stone-300 px-3 py-1 shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
+						>-</button>
+						<input
+							id="task-query-page"
+							name="page"
+							type="number"
+							step="1"
+							min="1"
+							value={ strconv.Itoa(page.Page) }
+							_="on change if me.value is less than 2 add @disabled to previous <button/> else remove @disabled from previous <button/>"
+							class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700 w-24"
+						/>
+						<button
+							type="button"
+							_="on click increment #task-query-page.value then send change to #task-query-page"
+							class="rounded-full bg-stone-300 px-3 py-1 shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
+						>+</button>
+					</div>
 				</div>
-				<div class="py-1">
-					<label for="size" class="capitalize pr-2">{ Translate(ctx, "page_size") }</label>
+				<div class="flex flex-col py-1">
+					<label for="task-query-size" class="capitalize pr-2">{ Translate(ctx, "page_size") }</label>
 					<select
+						id="task-query-size"
 						name="size"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
