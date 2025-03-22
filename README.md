@@ -35,14 +35,6 @@ air
 
 ## Update Translations
 
-Extract defaults from code base (initial steps)
-
-```sh
-goi18n extract -format toml --outdir locale
-cd locale
-goi18n merge active.en.toml translate.de.toml
-```
-
 Merge translations iteratively after each code update
 
 ```sh
@@ -54,7 +46,16 @@ goi18n merge active.*.toml
 Provide new translations and finally merge, e.g. `translate.*.toml`
 
 ```sh
+cd locale
 goi18n merge active.*.toml translate.*.toml
+```
+
+## Run Golang lint
+
+Golang lint requires <https://golangci-lint.run/>
+
+```sh
+golangci-lint run
 ```
 
 ## Use PostgreSQL
@@ -88,7 +89,7 @@ goose -dir entity postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" 
 - [x] notification snackbar (htmx OOB and extension)
 - [x] Markdown rending and styling (goldmark and Tailwind)
 - [x] table sorting
-- [ ] table paging
+- [x] table paging
 - [x] Golang enum string mapping
 - [x] browser history update and reload of subpages
 - [x] JSON logging (Golang slog)

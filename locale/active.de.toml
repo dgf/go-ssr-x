@@ -70,6 +70,10 @@ other = "abbrechen"
 hash = "sha1-410bf23a3f080def9c7a976a16305bcde7943ed1"
 other = "Bist du sicher?"
 
+[task_count]
+hash = "sha1-ee9f38e186ba06f57b7b74d7e626b94e13ce2556"
+other = "Anzahl"
+
 [task_create]
 hash = "sha1-9b7c68a918b17eb053809b198d7c9abfc142f30a"
 other = "erstellen"
@@ -97,6 +101,10 @@ other = "bearbeiten"
 [task_order]
 hash = "sha1-cce55e4309a753985bdd21919395fdc17daa11e4"
 other = "Reihenfolge"
+
+[task_results]
+hash = "sha1-cdf7e925f5746741c316f5fbcf39ad0dfca90775"
+other = "Ergebnisse"
 
 [task_save]
 hash = "sha1-13a4a11319d31c1b323d5774f44240a9ffc984d0"

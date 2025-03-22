@@ -41,8 +41,8 @@ func (ts *TaskServer) handleTask(w http.ResponseWriter, r *http.Request, handler
 	}
 }
 
-func query2TaskPage(query url.Values) entity.TaskPage {
-	return entity.TaskPage{
+func queryParams2TaskQuery(query url.Values) entity.TaskQuery {
+	return entity.TaskQuery{
 		Page:   param2IntOrDefault(query, "page", 1),
 		Size:   param2IntOrDefault(query, "size", entity.TaskPageDefaultSize),
 		Sort:   entity.TaskSortOrDefault(query.Get("sort")),
@@ -51,16 +51,16 @@ func query2TaskPage(query url.Values) entity.TaskPage {
 	}
 }
 
-func taskPage2Query(page entity.TaskPage) string {
-	query := &url.Values{}
+func taskQuery2QueryParams(query entity.TaskQuery) string {
+	values := &url.Values{}
 
-	query.Add("sort", page.Sort.String())
-	query.Add("order", page.Order.String())
-	query.Add("subject", page.Filter)
-	query.Add("page", strconv.Itoa(page.Page))
-	query.Add("size", strconv.Itoa(page.Size))
+	values.Add("sort", query.Sort.String())
+	values.Add("order", query.Order.String())
+	values.Add("subject", query.Filter)
+	values.Add("page", strconv.Itoa(query.Page))
+	values.Add("size", strconv.Itoa(query.Size))
 
-	return query.Encode()
+	return values.Encode()
 }
 
 func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) templ.Component {
@@ -68,31 +68,31 @@ func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) tem
 }
 
 func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Component {
-	page := query2TaskPage(r.URL.Query())
+	query := queryParams2TaskQuery(r.URL.Query())
 
 	pushURL := &url.URL{
 		Path:     "/tasks",
-		RawQuery: taskPage2Query(page),
+		RawQuery: taskQuery2QueryParams(query),
 	}
 
 	w.Header().Add("HX-Push-Url", pushURL.String())
 
-	if tasks, err := ts.storage.Tasks(page); err != nil {
+	if page, err := ts.storage.Tasks(query); err != nil {
 		log.Error("task rows access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
-		return view.TaskRows(tasks)
+		return view.TaskPageRows(page)
 	}
 }
 
 func (ts *TaskServer) TasksSection(w http.ResponseWriter, r *http.Request) templ.Component {
-	page := query2TaskPage(r.URL.Query())
+	query := queryParams2TaskQuery(r.URL.Query())
 
-	if tasks, err := ts.storage.Tasks(page); err != nil {
+	if page, err := ts.storage.Tasks(query); err != nil {
 		log.Error("tasks section access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
-		return view.TasksSection(tasks, page)
+		return view.TasksSection(query, page)
 	}
 }
 
@@ -113,7 +113,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 		return clientError(w, r, http.StatusInternalServerError, "database_error", messageData)
 	}
 
-	page := entity.TaskPage{
+	query := entity.TaskQuery{
 		Page:   1,
 		Size:   entity.TaskPageDefaultSize,
 		Sort:   entity.TaskSortDefault,
@@ -121,7 +121,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 		Filter: "",
 	}
 
-	if tasks, err := ts.storage.Tasks(page); err != nil {
+	if page, err := ts.storage.Tasks(query); err != nil {
 		log.Error("task listing failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -130,7 +130,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 			if err := view.SuccessNotify("ok_task_created", idData).Render(ctx, w); err != nil {
 				return err
 			}
-			return view.TasksSection(tasks, page).Render(ctx, w)
+			return view.TasksSection(query, page).Render(ctx, w)
 		})
 	}
 }

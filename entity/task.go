@@ -24,12 +24,19 @@ type TaskOverview struct {
 
 type TaskSort int64
 
-type TaskPage struct {
+type TaskQuery struct {
 	Page   int
 	Size   int
 	Sort   TaskSort
 	Order  SortOrder
 	Filter string
+}
+
+type TaskPage struct {
+	Count   int
+	Results int
+	Start   int
+	Tasks   []TaskOverview
 }
 
 const (

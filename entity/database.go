@@ -64,25 +64,28 @@ func (d *database) Task(id uuid.UUID) (Task, bool, error) {
 	return task, true, nil
 }
 
-func (d *database) Tasks(page TaskPage) ([]TaskOverview, error) {
-	sql := "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
-	sortOrder := taskOrderClause(page.Sort, page.Order)
-	query := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d",
-		sql, sortOrder, page.Size, (page.Page-1)*page.Size)
+func (d *database) Tasks(query TaskQuery) (TaskPage, error) {
+	sortOrder := taskOrderClause(query.Sort, query.Order)
+	sqlQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d",
+		"SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1",
+		sortOrder, query.Size, (query.Page-1)*query.Size)
 
-	var tasks []TaskOverview
-	if rows, err := d.db.Query(query, likeArg(page.Filter)); err != nil {
-		return tasks, err
+	// TODO count and results
+	page := TaskPage{Count: 37, Tasks: []TaskOverview{}}
+
+	if rows, err := d.db.Query(sqlQuery, likeArg(query.Filter)); err != nil {
+		return page, err
 	} else {
 		for rows.Next() {
 			var task TaskOverview
 			if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject); err != nil {
-				return tasks, err
+				return page, err
 			}
-			tasks = append(tasks, task)
+			page.Tasks = append(page.Tasks, task)
 		}
 	}
-	return tasks, nil
+
+	return page, nil
 }
 
 func (d *database) UpdateTask(id uuid.UUID, dueDate time.Time, subject, description string) (Task, bool, error) {

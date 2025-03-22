@@ -51,30 +51,41 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(page TaskPage) ([]TaskOverview, error) {
+func (m *memory) Tasks(query TaskQuery) (TaskPage, error) {
 	m.RLock()
 	defer m.RUnlock()
 
-	tasks := make([]TaskOverview, 0, len(m.tasks))
+	tasks := []Task{}
 	for _, t := range m.tasks {
-		if strings.Contains(t.Subject, page.Filter) {
-			tasks = append(tasks, TaskOverview{
-				Id:        t.Id,
-				CreatedAt: t.CreatedAt,
-				DueDate:   t.DueDate,
-				Subject:   t.Subject,
-			})
+		if strings.Contains(t.Subject, query.Filter) {
+			tasks = append(tasks, t)
 		}
 	}
 
-	slices.SortStableFunc(tasks, taskSortFunc(page.Sort, page.Order))
-
-	start := (page.Page - 1) * page.Size
-	if start > len(tasks) {
-		return []TaskOverview{}, nil
+	slices.SortStableFunc(tasks, taskSortFunc(query.Sort, query.Order))
+	pageStart := (query.Page - 1) * query.Size
+	if pageStart > len(tasks) {
+		return TaskPage{}, nil
 	}
 
-	return tasks[start:min(start+page.Size, len(tasks))], nil
+	page := TaskPage{
+		Count:   len(m.tasks),
+		Results: len(tasks),
+		Start:   pageStart,
+		Tasks:   []TaskOverview{},
+	}
+
+	pageEnd := min(pageStart+query.Size, len(tasks))
+	for _, t := range tasks[pageStart:pageEnd] {
+		page.Tasks = append(page.Tasks, TaskOverview{
+			Id:        t.Id,
+			CreatedAt: t.CreatedAt,
+			DueDate:   t.DueDate,
+			Subject:   t.Subject,
+		})
+	}
+
+	return page, nil
 }
 
 func (m *memory) DeleteTask(id uuid.UUID) error {
@@ -100,35 +111,35 @@ func (m *memory) UpdateTask(id uuid.UUID, dueDate time.Time, subject, descriptio
 	}
 }
 
-func taskSortValue(sort TaskSort) func(TaskOverview) string {
+func taskSortValue(sort TaskSort) func(Task) string {
 	switch sort {
 	case TaskSortCreatedAt:
-		return func(t TaskOverview) string {
+		return func(t Task) string {
 			return t.CreatedAt.String()
 		}
 	case TaskSortDueDate:
-		return func(t TaskOverview) string {
+		return func(t Task) string {
 			return t.DueDate.String()
 		}
 	case TaskSortSubject:
-		return func(t TaskOverview) string {
+		return func(t Task) string {
 			return t.Subject
 		}
 	}
 
-	return func(t TaskOverview) string {
+	return func(t Task) string {
 		return t.Id.String()
 	}
 }
 
-func taskSortFunc(sort TaskSort, order SortOrder) func(i, j TaskOverview) int {
+func taskSortFunc(sort TaskSort, order SortOrder) func(i, j Task) int {
 	value := taskSortValue(sort)
 	if order == AscendingOrder {
-		return func(i, j TaskOverview) int {
+		return func(i, j Task) int {
 			return cmp.Compare(value(i), value(j))
 		}
 	}
-	return func(i, j TaskOverview) int {
+	return func(i, j Task) int {
 		return cmp.Compare(value(j), value(i))
 	}
 }

@@ -185,6 +185,12 @@ templ TaskRows(tasks []entity.TaskOverview) {
 	}
 }
 
+templ TaskPageRows(page entity.TaskPage) {
+	@TaskRows(page.Tasks)
+	<div id="task-count" hx-swap-oob="innerHTML">{ strconv.Itoa(page.Count) }</div>
+	<div id="task-results" hx-swap-oob="innerHTML">{ strconv.Itoa(page.Results) }</div>
+}
+
 templ TaskTable(tasks []entity.TaskOverview) {
 	<div class="py-3">
 		<table class="w-full">
@@ -203,7 +209,7 @@ templ TaskTable(tasks []entity.TaskOverview) {
 	</div>
 }
 
-templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
+templ TasksSection(query entity.TaskQuery, page entity.TaskPage) {
 	<section hx-target="this" hx-swap="outerHTML" class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800">
 		<div class="flex flex-row items-center justify-between py-3">
 			<form
@@ -222,7 +228,7 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						id="task-query-subject"
 						name="subject"
 						type="search"
-						value={ page.Filter }
+						value={ query.Filter }
 						placeholder={ Translate(ctx, "task_subject_filter") + " ..." }
 						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 					/>
@@ -234,7 +240,7 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						name="sort"
 						class="capitalize rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
-						@optionList(page.Sort.String(), []Option{
+						@optionList(query.Sort.String(), []Option{
 							{value: entity.TaskSortCreatedAt.String(), label: Translate(ctx, "task_created_at")},
 							{value: entity.TaskSortDueDate.String(), label: Translate(ctx, "task_due_date")},
 							{value: entity.TaskSortSubject.String(), label: Translate(ctx, "task_subject")},
@@ -248,7 +254,7 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						name="order"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
-						@optionList(page.Order.String(), []Option{
+						@optionList(query.Order.String(), []Option{
 							{value: entity.AscendingOrder.String(), label: Translate(ctx, "order_ascending")},
 							{value: entity.DescendingOrder.String(), label: Translate(ctx, "order_descending")},
 						})
@@ -268,7 +274,7 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 							type="number"
 							step="1"
 							min="1"
-							value={ strconv.Itoa(page.Page) }
+							value={ strconv.Itoa(query.Page) }
 							_="on change if me.value is less than 2 add @disabled to previous <button/> else remove @disabled from previous <button/>"
 							class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700 w-24"
 						/>
@@ -286,15 +292,30 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 						name="size"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
-						@optionList(strconv.Itoa(page.Size), []Option{
+						@optionList(strconv.Itoa(query.Size), []Option{
 							{value: "5", label: "5"},
 							{value: "10", label: "10"},
 							{value: "25", label: "25"},
 						})
 					</select>
 				</div>
-				<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
 			</form>
+			<div class="grid grid-cols-[min-content_min-content_min-content] gap-2 capitalize">
+				<div>{ Translate(ctx, "task_results") }</div>
+				<div>/</div>
+				<div>{ Translate(ctx, "task_count") }</div>
+				<div
+					id="task-results"
+					class="text-right"
+				>
+					{ strconv.Itoa(page.Results) }
+				</div>
+				<div>/</div>
+				<div
+					id="task-count"
+				>{ strconv.Itoa(page.Count) }</div>
+			</div>
+			<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
 			<button
 				hx-get="/tasks/new"
 				hx-push-url="true"
@@ -303,6 +324,6 @@ templ TasksSection(tasks []entity.TaskOverview, page entity.TaskPage) {
 				{ Translate(ctx, "task_add") }
 			</button>
 		</div>
-		@TaskTable(tasks)
+		@TaskTable(page.Tasks)
 	</section>
 }
