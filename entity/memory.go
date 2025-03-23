@@ -2,6 +2,7 @@ package entity
 
 import (
 	"cmp"
+	"context"
 	"slices"
 	"strings"
 	"sync"
@@ -21,29 +22,29 @@ func NewMemory() Storage {
 	}
 }
 
-func (m *memory) AddTask(dueDate time.Time, subject, description string) (uuid.UUID, error) {
+func (m *memory) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	id := uuid.New()
 	m.tasks[id] = Task{
-		Id:         id,
-		Subject:    subject,
-		CreatedAt:  time.Now(),
-		DueDate:    dueDate,
-		Desciption: description,
+		Id:          id,
+		Subject:     data.Subject,
+		CreatedAt:   time.Now(),
+		DueDate:     data.DueDate,
+		Description: data.Description,
 	}
 	return id, nil
 }
 
-func (m *memory) TaskCount() (int, error) {
+func (m *memory) TaskCount(ctx context.Context) (int, error) {
 	m.RLock()
 	defer m.RUnlock()
 
 	return len(m.tasks), nil
 }
 
-func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
+func (m *memory) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -51,7 +52,7 @@ func (m *memory) Task(id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(query TaskQuery) (TaskPage, error) {
+func (m *memory) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -88,7 +89,7 @@ func (m *memory) Tasks(query TaskQuery) (TaskPage, error) {
 	return page, nil
 }
 
-func (m *memory) DeleteTask(id uuid.UUID) error {
+func (m *memory) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -96,16 +97,16 @@ func (m *memory) DeleteTask(id uuid.UUID) error {
 	return nil
 }
 
-func (m *memory) UpdateTask(id uuid.UUID, dueDate time.Time, subject, description string) (Task, bool, error) {
+func (m *memory) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	if t, ok := m.tasks[id]; !ok {
 		return t, false, nil
 	} else {
-		t.Subject = subject
-		t.DueDate = dueDate
-		t.Desciption = description
+		t.Subject = data.Subject
+		t.DueDate = data.DueDate
+		t.Description = data.Description
 		m.tasks[id] = t
 		return t, true, nil
 	}

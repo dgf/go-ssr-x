@@ -84,7 +84,7 @@ templ TaskEditForm(task entity.Task) {
 			/>
 			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
 			<textarea name="description" rows="7" class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700">
-				{ task.Desciption }
+				{ task.Description }
 			</textarea>
 		</div>
 		<div class="flex flex-row justify-between py-3">
@@ -121,7 +121,7 @@ templ TaskDetails(task entity.Task) {
 			<div>{ LocalizeDate(ctx, task.DueDate) }</div>
 			<div class="capitalize">{ Translate(ctx, "task_description") }</div>
 			<div class="prose prose-sm dark:prose-invert">
-				@markdown(task.Desciption)
+				@markdown(task.Description)
 			</div>
 		</div>
 		<div class="flex flex-row justify-between py-3">

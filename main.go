@@ -109,16 +109,18 @@ func main() {
 		storage = entity.NewDatabase(connStr)
 	}
 
-	if taskCount, err := storage.TaskCount(); err != nil {
+	ctx := context.Background()
+	if taskCount, err := storage.TaskCount(ctx); err != nil {
 		log.Error("initial storage access failed", err)
 		os.Exit(7)
 	} else if taskCount == 0 {
 		log.Info("initialize storage with some tasks")
 		for i := range 100 {
-			dueInDays := time.Duration(i%14) * 24 * time.Hour // mods a day in the next two weeks
-			subject := fmt.Sprintf("to do %v something", i+1)
-			desc := "some `code` check\n\nlist:\n\n- foo\n- bar"
-			_, _ = storage.AddTask(time.Now().Add(dueInDays), subject, desc)
+			_, _ = storage.AddTask(ctx, entity.TaskData{
+				DueDate:     time.Now().Add(time.Duration(i%14) * 24 * time.Hour), // mods a day in the next two weeks
+				Subject:     fmt.Sprintf("to do %v something", i+1),
+				Description: "some `code` check\n\nlist:\n\n- foo\n- bar",
+			})
 		}
 	}
 

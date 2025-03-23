@@ -8,11 +8,17 @@ import (
 )
 
 type Task struct {
-	Id         uuid.UUID
-	CreatedAt  time.Time
-	DueDate    time.Time
-	Subject    string
-	Desciption string
+	Id          uuid.UUID
+	CreatedAt   time.Time
+	DueDate     time.Time
+	Subject     string
+	Description string
+}
+
+type TaskData struct {
+	DueDate     time.Time
+	Subject     string
+	Description string
 }
 
 type TaskOverview struct {

@@ -30,7 +30,7 @@ func (ts *TaskServer) handleTask(w http.ResponseWriter, r *http.Request, handler
 	if id, err := uuid.Parse(pid); err != nil {
 		badData := map[string]string{"param": "id", "value": pid}
 		return clientError(w, r, http.StatusBadRequest, "bad_request_path_param", badData)
-	} else if task, ok, err := ts.storage.Task(id); err != nil {
+	} else if task, ok, err := ts.storage.Task(r.Context(), id); err != nil {
 		log.Error("task access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else if !ok {
@@ -63,6 +63,14 @@ func taskQuery2QueryParams(query entity.TaskQuery) string {
 	return values.Encode()
 }
 
+func form2TaskData(r *http.Request) entity.TaskData {
+	return entity.TaskData{
+		DueDate:     parseDate(r.FormValue("dueDate")),
+		Subject:     r.FormValue("subject"),
+		Description: r.FormValue("description"),
+	}
+}
+
 func (ts *TaskServer) TaskCreateForm(w http.ResponseWriter, r *http.Request) templ.Component {
 	return view.TaskCreateForm()
 }
@@ -77,7 +85,7 @@ func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Com
 
 	w.Header().Add("HX-Push-Url", pushURL.String())
 
-	if page, err := ts.storage.Tasks(query); err != nil {
+	if page, err := ts.storage.Tasks(r.Context(), query); err != nil {
 		log.Error("task rows access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -88,7 +96,7 @@ func (ts *TaskServer) TaskRows(w http.ResponseWriter, r *http.Request) templ.Com
 func (ts *TaskServer) TasksSection(w http.ResponseWriter, r *http.Request) templ.Component {
 	query := queryParams2TaskQuery(r.URL.Query())
 
-	if page, err := ts.storage.Tasks(query); err != nil {
+	if page, err := ts.storage.Tasks(r.Context(), query); err != nil {
 		log.Error("tasks section access failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -102,11 +110,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	}
 
-	dueDate := parseDate(r.FormValue("dueDate"))
-	subject := r.FormValue("subject")
-	description := r.FormValue("description")
-
-	id, err := ts.storage.AddTask(dueDate, subject, description)
+	id, err := ts.storage.AddTask(r.Context(), form2TaskData(r))
 	if err != nil {
 		log.Error("task creation failed", err)
 		messageData := map[string]string{"message": err.Error()}
@@ -121,7 +125,7 @@ func (ts *TaskServer) CreateTask(w http.ResponseWriter, r *http.Request) templ.C
 		Filter: "",
 	}
 
-	if page, err := ts.storage.Tasks(query); err != nil {
+	if page, err := ts.storage.Tasks(r.Context(), query); err != nil {
 		log.Error("task listing failed", err)
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	} else {
@@ -145,7 +149,7 @@ func (ts *TaskServer) EditTask(w http.ResponseWriter, r *http.Request) templ.Com
 
 func (ts *TaskServer) DeleteTask(w http.ResponseWriter, r *http.Request) templ.Component {
 	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		if err := ts.storage.DeleteTask(task.Id); err != nil {
+		if err := ts.storage.DeleteTask(r.Context(), task.Id); err != nil {
 			log.Warn(fmt.Sprintf("task deletion failed: %v", err))
 			return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 		}
@@ -160,12 +164,8 @@ func (ts *TaskServer) UpdateTask(w http.ResponseWriter, r *http.Request) templ.C
 		return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 	}
 
-	dueDate := parseDate(r.FormValue("dueDate"))
-	subject := r.FormValue("subject")
-	description := r.FormValue("description")
-
 	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		if updated, ok, err := ts.storage.UpdateTask(task.Id, dueDate, subject, description); err != nil {
+		if updated, ok, err := ts.storage.UpdateTask(r.Context(), task.Id, form2TaskData(r)); err != nil {
 			log.Warn(fmt.Sprintf("task update failed: %v ", err))
 			return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 		} else if !ok { // e.g. delete while user is updating
