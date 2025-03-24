@@ -7,6 +7,7 @@ import (
 )
 
 type Storage interface {
+	Close()
 	AddTask(ctx context.Context, data TaskData) (uuid.UUID, error)
 	TaskCount(ctx context.Context) (int, error)
 	Task(ctx context.Context, id uuid.UUID) (task Task, found bool, err error)

@@ -2,108 +2,111 @@ package entity
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	"fmt"
-	"os"
 	"strings"
 
-	_ "github.com/lib/pq"
-
-	"github.com/dgf/go-ssr-x/log"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type database struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewDatabase(connStr string) Storage {
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Error("open database connection failed", err)
-		os.Exit(101)
+func NewDatabase(ctx context.Context, connStr string) (Storage, error) {
+	if dbpool, err := pgxpool.New(ctx, connStr); err != nil {
+		return nil, err
+	} else {
+		return &database{db: dbpool}, nil
 	}
-	return &database{db: db}
+}
+
+func (d *database) Close() {
+	d.db.Close()
 }
 
 func (d *database) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
+	sql := "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
+
 	id := uuid.New()
-	if _, err := d.db.ExecContext(ctx,
-		"INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)",
-		id, data.DueDate, data.Subject, data.Description); err != nil {
+	if _, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
 		return uuid.Nil, err
 	}
 	return id, nil
 }
 
 func (d *database) TaskCount(ctx context.Context) (int, error) {
+	sql := "SELECT count(*) FROM task"
+
 	var count int
-	if err := d.db.QueryRowContext(ctx, "SELECT count(*) FROM task").Scan(&count); err != nil {
+	if err := d.db.QueryRow(ctx, sql).Scan(&count); err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
 func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	if _, err := d.db.ExecContext(ctx, "DELETE FROM task WHERE id = $1", id); err != nil {
+	sql := "DELETE FROM task WHERE id = $1"
+
+	if tag, err := d.db.Exec(ctx, sql, id); err != nil {
 		return err
+	} else if tag.RowsAffected() != 1 {
+		return fmt.Errorf("no row for %s", id)
 	}
 	return nil
 }
 
 func (d *database) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
-	rows := d.db.QueryRowContext(ctx,
-		"SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1", id)
+	sql := "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 
-	var task Task
-	if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject, &task.Description); err != nil {
-		if err == sql.ErrNoRows {
+	if rows, err := d.db.Query(ctx, sql, id); err != nil {
+		return Task{}, false, err
+	} else if task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[Task]); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return task, false, nil
 		}
 		return task, false, err
+	} else {
+		return task, true, nil
 	}
-	return task, true, nil
 }
 
 func (d *database) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
-	subjectLike := likeArg(query.Filter)
-	sortOrder := taskOrderClause(query.Sort, query.Order)
 	resultsQuery := "SELECT count(*) FROM task WHERE subject LIKE $1"
 	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d",
 		"SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1",
-		sortOrder, query.Size, (query.Page-1)*query.Size)
+		taskOrderClause(query.Sort, query.Order), query.Size, (query.Page-1)*query.Size)
+	subjectLike := likeArg(query.Filter)
 
-	if tx, err := d.db.BeginTx(ctx, nil); err != nil {
+	if tx, err := d.db.Begin(ctx); err != nil {
 		return TaskPage{}, err
 	} else {
-		defer tx.Rollback()
+		defer tx.Rollback(ctx)
 	}
 
 	var results int
 	if count, err := d.TaskCount(ctx); err != nil {
 		return TaskPage{}, err
-	} else if err := d.db.QueryRowContext(ctx, resultsQuery, subjectLike).Scan(&results); err != nil {
+	} else if err := d.db.QueryRow(ctx, resultsQuery, subjectLike).Scan(&results); err != nil {
 		return TaskPage{Count: count}, err
-	} else if rows, err := d.db.QueryContext(ctx, rowsQuery, subjectLike); err != nil {
+	} else if rows, err := d.db.Query(ctx, rowsQuery, subjectLike); err != nil {
+		return TaskPage{Count: count, Results: results}, err
+	} else if tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[TaskOverview]); err != nil {
 		return TaskPage{Count: count, Results: results}, err
 	} else {
-		tasks := []TaskOverview{}
-		for rows.Next() {
-			var task TaskOverview
-			if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject); err != nil {
-				return TaskPage{Count: count, Results: results}, err
-			}
-			tasks = append(tasks, task)
-		}
 		return TaskPage{Count: count, Results: results, Tasks: tasks}, err
 	}
 }
 
 func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
-	if _, err := d.db.ExecContext(ctx,
-		"UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1",
-		id, data.DueDate, data.Subject, data.Description); err != nil {
+	sql := "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
+
+	if tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
 		return Task{}, false, err
+	} else if tag.RowsAffected() != 1 {
+		return Task{}, false, fmt.Errorf("no row for %s", id)
 	}
 	return d.Task(ctx, id)
 }

@@ -22,6 +22,10 @@ func NewMemory() Storage {
 	}
 }
 
+func (m *memory) Close() {
+	// noop
+}
+
 func (m *memory) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
 	m.Lock()
 	defer m.Unlock()

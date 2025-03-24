@@ -98,18 +98,29 @@ func PanicRecovery(next http.Handler) http.Handler {
 	})
 }
 
-func main() {
-	parseFlags()
-	if storageType == "memory" {
+func initStorage(ctx context.Context) entity.Storage {
+	switch storageType {
+	case "memory":
 		log.Warn("running with in-memory storage, the data will be lost when restarting")
-		storage = entity.NewMemory()
+		return entity.NewMemory()
+	case "database":
+		if storage, err := entity.NewDatabase(ctx, connStr); err != nil {
+			panic(err)
+		} else {
+			return storage
+		}
+	default:
+		panic(fmt.Sprintf("unknown storage type: %s", storageType))
 	}
+}
 
-	if storageType == "database" {
-		storage = entity.NewDatabase(connStr)
-	}
-
+func main() {
 	ctx := context.Background()
+	parseFlags()
+
+	storage := initStorage(ctx)
+	defer storage.Close()
+
 	if taskCount, err := storage.TaskCount(ctx); err != nil {
 		log.Error("initial storage access failed", err)
 		os.Exit(7)
