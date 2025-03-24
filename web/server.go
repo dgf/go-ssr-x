@@ -107,13 +107,11 @@ func Serve(addr string, storage entity.Storage) error {
 		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 
-	server := http.Server{
+	return (&http.Server{
 		Addr:         addr,
 		Handler:      panicRecovery(mux),
 		WriteTimeout: 13 * time.Second,
 		ReadTimeout:  17 * time.Second,
 		IdleTimeout:  37 * time.Second,
-	}
-
-	return server.ListenAndServe()
+	}).ListenAndServe()
 }

@@ -12,15 +12,20 @@ import (
 	"github.com/dgf/go-ssr-x/web"
 )
 
-const defaultConnStr = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
+const (
+	defaultAddr    = "0.0.0.0:3000"
+	defaultConnStr = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
+)
 
 var (
-	storage     entity.Storage
-	storageType string
+	addr        string
 	connStr     string
+	storageType string
+	storage     entity.Storage
 )
 
 func parseFlags() {
+	flag.StringVar(&addr, "address", defaultAddr, "web server address")
 	flag.StringVar(&storageType, "storage", "memory", "memory or database")
 	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
 	flag.Parse()
@@ -67,8 +72,6 @@ func main() {
 			})
 		}
 	}
-
-	addr := "0.0.0.0:3000"
 
 	log.Info("Listening on " + addr)
 	log.Error("listen and serve failed", web.Serve(addr, storage))
