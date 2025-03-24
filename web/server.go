@@ -1,12 +1,10 @@
-package main
+package web
 
 import (
 	"context"
 	"embed"
-	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/a-h/templ"
@@ -14,7 +12,6 @@ import (
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/locale"
 	"github.com/dgf/go-ssr-x/log"
-	"github.com/dgf/go-ssr-x/server"
 	"github.com/dgf/go-ssr-x/view"
 	"golang.org/x/text/language"
 )
@@ -28,19 +25,6 @@ var (
 	storageType string
 	connStr     string
 )
-
-const defaultConnStr = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
-
-func parseFlags() {
-	flag.StringVar(&storageType, "storage", "memory", "memory or database")
-	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
-	flag.Parse()
-
-	if storageType != "memory" && storageType != "database" {
-		flag.Usage()
-		os.Exit(1)
-	}
-}
 
 func init() {
 	mux = http.NewServeMux()
@@ -82,7 +66,7 @@ func route(pattern string, handler func(http.ResponseWriter, *http.Request) temp
 	})
 }
 
-func PanicRecovery(next http.Handler) http.Handler {
+func panicRecovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -98,44 +82,8 @@ func PanicRecovery(next http.Handler) http.Handler {
 	})
 }
 
-func initStorage(ctx context.Context) entity.Storage {
-	switch storageType {
-	case "memory":
-		log.Warn("running with in-memory storage, the data will be lost when restarting")
-		return entity.NewMemory()
-	case "database":
-		if storage, err := entity.NewDatabase(ctx, connStr); err != nil {
-			panic(err)
-		} else {
-			return storage
-		}
-	default:
-		panic(fmt.Sprintf("unknown storage type: %s", storageType))
-	}
-}
-
-func main() {
-	ctx := context.Background()
-	parseFlags()
-
-	storage := initStorage(ctx)
-	defer storage.Close()
-
-	if taskCount, err := storage.TaskCount(ctx); err != nil {
-		log.Error("initial storage access failed", err)
-		os.Exit(7)
-	} else if taskCount == 0 {
-		log.Info("initialize storage with some tasks")
-		for i := range 100 {
-			_, _ = storage.AddTask(ctx, entity.TaskData{
-				DueDate:     time.Now().Add(time.Duration(i%14) * 24 * time.Hour), // mods a day in the next two weeks
-				Subject:     fmt.Sprintf("to do %v something", i+1),
-				Description: "some `code` check\n\nlist:\n\n- foo\n- bar",
-			})
-		}
-	}
-
-	taskServer := server.NewTaskServer(storage)
+func Serve(addr string, storage entity.Storage) error {
+	taskServer := NewTaskServer(storage)
 
 	route("GET /tasks/new", taskServer.TaskCreateForm)
 	route("GET /tasks/rows", taskServer.TaskRows)
@@ -159,13 +107,13 @@ func main() {
 		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 
-	log.Info("Listening on :3000")
 	server := http.Server{
-		Addr:         "0.0.0.0:3000",
-		Handler:      PanicRecovery(mux),
+		Addr:         addr,
+		Handler:      panicRecovery(mux),
 		WriteTimeout: 13 * time.Second,
 		ReadTimeout:  17 * time.Second,
 		IdleTimeout:  37 * time.Second,
 	}
-	log.Error("listen and serve failed", server.ListenAndServe())
+
+	return server.ListenAndServe()
 }

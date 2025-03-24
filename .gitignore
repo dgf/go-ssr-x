@@ -1,8 +1,8 @@
-assets/css/tailwind.css
-assets/js/htmx.min.js
-assets/js/hyperscript.min.js
-assets/js/remove-me.js
-assets/js/response-targets.js
+web/assets/css/tailwind.css
+web/assets/js/htmx.min.js
+web/assets/js/hyperscript.min.js
+web/assets/js/remove-me.js
+web/assets/js/response-targets.js
 locale/active.en.toml
 locale/translate.*.toml
 tmp/

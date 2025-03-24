@@ -4,8 +4,8 @@
   "description": "Frontend Assets",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "tailwindcss build -o assets/css/tailwind.css --minify",
-    "watch": "tailwindcss build -o assets/css/tailwind.css --watch"
+    "build": "tailwindcss build -o web/assets/css/tailwind.css --minify",
+    "watch": "tailwindcss build -o web/assets/css/tailwind.css --watch"
   },
   "dependencies": {
     "htmx.org": "1.9.12",

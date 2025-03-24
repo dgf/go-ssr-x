@@ -3,11 +3,11 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-args_bin = []
-bin = "./tmp/main"
-cmd = "templ generate && go build -o ./tmp/main ."
+args_bin = ["-storage memory"]
+bin = "./tmp/server"
+cmd = "templ generate && go build -o ./tmp/server cmd/server/main.go"
 delay = 1000
-exclude_dir = ["node_modules", "testdata", "tmp", "vendor"]
+exclude_dir = ["e2e", "node_modules", "testdata", "tmp", "vendor"]
 exclude_file = []
 exclude_regex = ["_test.go", "_templ.go"]
 exclude_unchanged = false

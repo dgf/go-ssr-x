@@ -8,10 +8,10 @@ Initialize environment
 
 ```sh
 npm install # to install dependencies
-cp node_modules/htmx.org/dist/htmx.min.js assets/js
-cp node_modules/htmx.org/dist/ext/response-targets.js assets/js
-cp node_modules/htmx.org/dist/ext/remove-me.js assets/js
-cp node_modules/hyperscript.org/dist/_hyperscript.min.js assets/js/hyperscript.min.js
+cp node_modules/htmx.org/dist/htmx.min.js web/assets/js
+cp node_modules/htmx.org/dist/ext/response-targets.js web/assets/js
+cp node_modules/htmx.org/dist/ext/remove-me.js web/assets/js
+cp node_modules/hyperscript.org/dist/_hyperscript.min.js web/assets/js/hyperscript.min.js
 npm run build # to create CSS asset
 
 go install github.com/a-h/templ/cmd/templ@latest
