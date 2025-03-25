@@ -12,7 +12,7 @@ import (
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/locale"
 	"github.com/dgf/go-ssr-x/log"
-	"github.com/dgf/go-ssr-x/view"
+	"github.com/dgf/go-ssr-x/web/view"
 	"golang.org/x/text/language"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/log"
-	"github.com/dgf/go-ssr-x/view"
+	"github.com/dgf/go-ssr-x/web/view"
 	"github.com/google/uuid"
 )
 
