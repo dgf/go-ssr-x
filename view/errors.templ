@@ -2,7 +2,7 @@ package view
 
 templ ClientError(messageID string, data map[string]string) {
 	<section class="container rounded-lg bg-yellow-300 pb-2 shadow-lg dark:bg-yellow-700">
-		<h1 class="py-2 text-xl font-bold">{ Translate(ctx, "client_error") }</h1>
-		<p>{ TranslateData(ctx, messageID, data) }</p>
+		<h1 class="py-2 text-xl font-bold">{ translate(ctx, "client_error") }</h1>
+		<p>{ translateData(ctx, messageID, data) }</p>
 	</section>
 }

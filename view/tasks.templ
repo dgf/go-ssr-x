@@ -15,7 +15,7 @@ templ TaskCreateForm() {
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
-			<label for="subject" class="my-2 capitalize">{ Translate(ctx, "task_subject") }</label>
+			<label for="subject" class="my-2 capitalize">{ translate(ctx, "task_subject") }</label>
 			<input
 				name="subject"
 				required
@@ -23,7 +23,7 @@ templ TaskCreateForm() {
 				maxlength="255"
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="dueDate" class="my-2 capitalize">{ Translate(ctx, "task_due_date") }</label>
+			<label for="dueDate" class="my-2 capitalize">{ translate(ctx, "task_due_date") }</label>
 			<input
 				name="dueDate"
 				type="date"
@@ -31,7 +31,7 @@ templ TaskCreateForm() {
 				min={ date(time.Now()) }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
+			<label for="description" class="my-2 capitalize">{ translate(ctx, "task_description") }</label>
 			<textarea name="description" rows="7" class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"></textarea>
 		</div>
 		<div class="flex flex-row justify-between py-3">
@@ -40,16 +40,16 @@ templ TaskCreateForm() {
 					hx-push-url="true"
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					{ Translate(ctx, "task_create") }
+					{ translate(ctx, "task_create") }
 				</button>
 				<button
 					hx-get="/tasks"
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					{ Translate(ctx, "task_cancel") }
+					{ translate(ctx, "task_cancel") }
 				</button>
 			</div>
-			<div class="htmx-indicator px-2 py-1 capitalize">{ Translate(ctx, "task_creating") } ...</div>
+			<div class="htmx-indicator px-2 py-1 capitalize">{ translate(ctx, "task_creating") } ...</div>
 		</div>
 	</form>
 }
@@ -65,7 +65,7 @@ templ TaskEditForm(task entity.Task) {
 		class="container rounded-lg bg-stone-200 shadow-lg dark:bg-stone-800"
 	>
 		<div class="flex flex-col">
-			<label for="subject" class="my-2 capitalize">{ Translate(ctx, "task_subject") }</label>
+			<label for="subject" class="my-2 capitalize">{ translate(ctx, "task_subject") }</label>
 			<input
 				name="subject"
 				required
@@ -74,7 +74,7 @@ templ TaskEditForm(task entity.Task) {
 				value={ task.Subject }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="dueDate" class="my-2 capitalize">{ Translate(ctx, "task_due_date") }</label>
+			<label for="dueDate" class="my-2 capitalize">{ translate(ctx, "task_due_date") }</label>
 			<input
 				name="dueDate"
 				type="date"
@@ -82,7 +82,7 @@ templ TaskEditForm(task entity.Task) {
 				min={ date(task.CreatedAt) }
 				class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 			/>
-			<label for="description" class="my-2 capitalize">{ Translate(ctx, "task_description") }</label>
+			<label for="description" class="my-2 capitalize">{ translate(ctx, "task_description") }</label>
 			<textarea name="description" rows="7" class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700">
 				{ task.Description }
 			</textarea>
@@ -92,16 +92,16 @@ templ TaskEditForm(task entity.Task) {
 				<button
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-50 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					{ Translate(ctx, "task_save") }
+					{ translate(ctx, "task_save") }
 				</button>
 				<button
 					hx-get={ "/tasks/" + task.Id.String() }
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					{ Translate(ctx, "task_cancel") }
+					{ translate(ctx, "task_cancel") }
 				</button>
 			</div>
-			<div class="htmx-indicator px-2 py-1 capitalize">{ Translate(ctx, "task_saving") } ...</div>
+			<div class="htmx-indicator px-2 py-1 capitalize">{ translate(ctx, "task_saving") } ...</div>
 		</div>
 	</form>
 }
@@ -113,13 +113,13 @@ templ TaskDetails(task entity.Task) {
 		class="container rounded-lg bg-stone-200 py-2 shadow-lg dark:bg-stone-800"
 	>
 		<div class="grid grid-cols-[1fr_3fr] gap-2">
-			<div class="capitalize">{ Translate(ctx, "task_subject") }</div>
+			<div class="capitalize">{ translate(ctx, "task_subject") }</div>
 			<div>{ task.Subject }</div>
-			<div class="capitalize">{ Translate(ctx, "task_created_at") }</div>
-			<div>{ LocalizeDateTime(ctx, task.CreatedAt) }</div>
-			<div class="capitalize">{ Translate(ctx, "task_due_date") }</div>
-			<div>{ LocalizeDate(ctx, task.DueDate) }</div>
-			<div class="capitalize">{ Translate(ctx, "task_description") }</div>
+			<div class="capitalize">{ translate(ctx, "task_created_at") }</div>
+			<div>{ localizeDateTime(ctx, task.CreatedAt) }</div>
+			<div class="capitalize">{ translate(ctx, "task_due_date") }</div>
+			<div>{ localizeDate(ctx, task.DueDate) }</div>
+			<div class="capitalize">{ translate(ctx, "task_description") }</div>
 			<div class="prose prose-sm dark:prose-invert">
 				@markdown(task.Description)
 			</div>
@@ -131,14 +131,14 @@ templ TaskDetails(task entity.Task) {
 					hx-push-url="true"
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
-					{ Translate(ctx, "task_edit") }
+					{ translate(ctx, "task_edit") }
 				</button>
 				<button
 					hx-get="/tasks"
 					hx-push-url="true"
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-90 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
-					{ Translate(ctx, "task_back") }
+					{ translate(ctx, "task_back") }
 				</button>
 			</div>
 		</div>
@@ -152,10 +152,10 @@ templ TaskRow(task entity.TaskOverview) {
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
 		<td class="p-2 proportional-nums">
-			{ LocalizeDateTime(ctx, task.CreatedAt) }
+			{ localizeDateTime(ctx, task.CreatedAt) }
 		</td>
 		<td class="p-2 proportional-nums">
-			{ LocalizeDate(ctx, task.DueDate) }
+			{ localizeDate(ctx, task.DueDate) }
 		</td>
 		<td class="p-2">{ task.Subject }</td>
 		<td class="flex gap-1 p-2">
@@ -168,7 +168,7 @@ templ TaskRow(task entity.TaskOverview) {
 			</button>
 			<button
 				hx-delete={ "/tasks/" + task.Id.String() }
-				hx-confirm={ Translate(ctx, "task_confirm_delete") }
+				hx-confirm={ translate(ctx, "task_confirm_delete") }
 				hx-target="closest tr"
 				hx-swap="outerHTML swap:1s"
 				class="h-8 w-8 rounded-full bg-orange-400 px-2 py-1 shadow-lg hover:bg-orange-300 dark:bg-rose-700 dark:hover:bg-rose-600"
@@ -196,9 +196,9 @@ templ TaskTable(tasks []entity.TaskOverview) {
 		<table class="w-full">
 			<thead class="bg-stone-400 text-left font-semibold dark:bg-stone-600">
 				<tr>
-					<th class="p-2 capitalize">{ Translate(ctx, "task_created_at") }</th>
-					<th class="p-2 capitalize">{ Translate(ctx, "task_due_date") }</th>
-					<th class="p-2 capitalize">{ Translate(ctx, "task_subject") }</th>
+					<th class="p-2 capitalize">{ translate(ctx, "task_created_at") }</th>
+					<th class="p-2 capitalize">{ translate(ctx, "task_due_date") }</th>
+					<th class="p-2 capitalize">{ translate(ctx, "task_subject") }</th>
 					<th class="p-2"></th>
 				</tr>
 			</thead>
@@ -223,45 +223,45 @@ templ TasksSection(query entity.TaskQuery, page entity.TaskPage) {
 				class="flex flex-row items-center gap-4"
 			>
 				<div class="flex flex-col py-1">
-					<label for="task-query-subject" class="capitalize pr-2">{ Translate(ctx, "task_subject") }</label>
+					<label for="task-query-subject" class="capitalize pr-2">{ translate(ctx, "task_subject") }</label>
 					<input
 						id="task-query-subject"
 						name="subject"
 						type="search"
 						value={ query.Filter }
-						placeholder={ Translate(ctx, "task_subject_filter") + " ..." }
+						placeholder={ translate(ctx, "task_subject_filter") + " ..." }
 						class="rounded-sm px-2 py-2 shadow-sm dark:bg-stone-700"
 					/>
 				</div>
 				<div class="flex flex-col py-1">
-					<label for="task-query-sort" class="capitalize pr-2">{ Translate(ctx, "task_sort") }</label>
+					<label for="task-query-sort" class="capitalize pr-2">{ translate(ctx, "task_sort") }</label>
 					<select
 						id="task-query-sort"
 						name="sort"
 						class="capitalize rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
 						@optionList(query.Sort.String(), []Option{
-							{value: entity.TaskSortCreatedAt.String(), label: Translate(ctx, "task_created_at")},
-							{value: entity.TaskSortDueDate.String(), label: Translate(ctx, "task_due_date")},
-							{value: entity.TaskSortSubject.String(), label: Translate(ctx, "task_subject")},
+							{value: entity.TaskSortCreatedAt.String(), label: translate(ctx, "task_created_at")},
+							{value: entity.TaskSortDueDate.String(), label: translate(ctx, "task_due_date")},
+							{value: entity.TaskSortSubject.String(), label: translate(ctx, "task_subject")},
 						})
 					</select>
 				</div>
 				<div class="flex flex-col py-1">
-					<label for="task-query-order" class="capitalize pr-2">{ Translate(ctx, "task_order") }</label>
+					<label for="task-query-order" class="capitalize pr-2">{ translate(ctx, "task_order") }</label>
 					<select
 						id="task-query-order"
 						name="order"
 						class="rounded-lg px-2 py-2 shadow-lg dark:bg-stone-700"
 					>
 						@optionList(query.Order.String(), []Option{
-							{value: entity.AscendingOrder.String(), label: Translate(ctx, "order_ascending")},
-							{value: entity.DescendingOrder.String(), label: Translate(ctx, "order_descending")},
+							{value: entity.AscendingOrder.String(), label: translate(ctx, "order_ascending")},
+							{value: entity.DescendingOrder.String(), label: translate(ctx, "order_descending")},
 						})
 					</select>
 				</div>
 				<div class="flex flex-col py-1">
-					<label for="task-query-page" class="capitalize pr-2">{ Translate(ctx, "page_number") }</label>
+					<label for="task-query-page" class="capitalize pr-2">{ translate(ctx, "page_number") }</label>
 					<div>
 						<button
 							type="button"
@@ -286,7 +286,7 @@ templ TasksSection(query entity.TaskQuery, page entity.TaskPage) {
 					</div>
 				</div>
 				<div class="flex flex-col py-1">
-					<label for="task-query-size" class="capitalize pr-2">{ Translate(ctx, "page_size") }</label>
+					<label for="task-query-size" class="capitalize pr-2">{ translate(ctx, "page_size") }</label>
 					<select
 						id="task-query-size"
 						name="size"
@@ -301,9 +301,9 @@ templ TasksSection(query entity.TaskQuery, page entity.TaskPage) {
 				</div>
 			</form>
 			<div class="grid grid-cols-[min-content_min-content_min-content] gap-2 capitalize">
-				<div>{ Translate(ctx, "task_results") }</div>
+				<div>{ translate(ctx, "task_results") }</div>
 				<div>/</div>
-				<div>{ Translate(ctx, "task_count") }</div>
+				<div>{ translate(ctx, "task_count") }</div>
 				<div
 					id="task-results"
 					class="text-right"
@@ -315,13 +315,13 @@ templ TasksSection(query entity.TaskQuery, page entity.TaskPage) {
 					id="task-count"
 				>{ strconv.Itoa(page.Count) }</div>
 			</div>
-			<div id="tasks-loading" class="htmx-indicator capitalize">{ Translate(ctx, "tasks_loading") } ...</div>
+			<div id="tasks-loading" class="htmx-indicator capitalize">{ translate(ctx, "tasks_loading") } ...</div>
 			<button
 				hx-get="/tasks/new"
 				hx-push-url="true"
 				class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
-				{ Translate(ctx, "task_add") }
+				{ translate(ctx, "task_add") }
 			</button>
 		</div>
 		@TaskTable(page.Tasks)

@@ -9,7 +9,7 @@ templ SuccessNotify(messageID string, data map[string]string) {
 			hx-swap="outerHTML swap:1s"
 			class="client-notify my-1 flex rounded-lg bg-lime-400 px-2 py-1 shadow-lg dark:bg-lime-800"
 		>
-			<div>{ TranslateData(ctx, messageID, data) }</div>
+			<div>{ translateData(ctx, messageID, data) }</div>
 			<button class="h-6 w-6 flex-none pl-1">
 				<img src="/assets/icons/xCircle.svg"/>
 			</button>
@@ -24,7 +24,7 @@ templ ClientErrorNotify(messageID string, data map[string]string) {
 		hx-swap="outerHTML swap:1s"
 		class="client-error my-1 flex rounded-lg bg-yellow-300 px-2 py-1 shadow-lg dark:bg-yellow-700"
 	>
-		<div class="flex-auto">{ TranslateData(ctx, messageID, data) }</div>
+		<div class="flex-auto">{ translateData(ctx, messageID, data) }</div>
 		<button class="h-6 w-6 flex-none pl-1">
 			<img src="/assets/icons/xCircle.svg"/>
 		</button>

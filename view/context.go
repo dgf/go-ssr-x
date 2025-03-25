@@ -10,7 +10,7 @@ import (
 
 type ViewContextKey string
 
-var LocaleContextKey ViewContextKey = "locale"
+const LocaleContextKey ViewContextKey = "locale"
 
 type LocaleContext struct {
 	Formatter  locale.Formatter
@@ -25,7 +25,7 @@ func runLocalized(ctx context.Context, localize func(LocaleContext) string, fall
 	return fallback()
 }
 
-func LocalizeDate(ctx context.Context, d time.Time) string {
+func localizeDate(ctx context.Context, d time.Time) string {
 	return runLocalized(ctx, func(l LocaleContext) string {
 		return l.Formatter.FormatDate(d)
 	}, func() string {
@@ -33,7 +33,7 @@ func LocalizeDate(ctx context.Context, d time.Time) string {
 	})
 }
 
-func LocalizeDateTime(ctx context.Context, dt time.Time) string {
+func localizeDateTime(ctx context.Context, dt time.Time) string {
 	return runLocalized(ctx, func(l LocaleContext) string {
 		return l.Formatter.FormatDateTime(dt)
 	}, func() string {
@@ -41,7 +41,7 @@ func LocalizeDateTime(ctx context.Context, dt time.Time) string {
 	})
 }
 
-func Translate(ctx context.Context, messageID string) string {
+func translate(ctx context.Context, messageID string) string {
 	return runLocalized(ctx, func(l LocaleContext) string {
 		return l.Translator.Translate(messageID)
 	}, func() string {
@@ -49,7 +49,7 @@ func Translate(ctx context.Context, messageID string) string {
 	})
 }
 
-func TranslateData(ctx context.Context, messageID string, data map[string]string) string {
+func translateData(ctx context.Context, messageID string, data map[string]string) string {
 	return runLocalized(ctx, func(l LocaleContext) string {
 		return l.Translator.TranslateData(messageID, data)
 	}, func() string {
