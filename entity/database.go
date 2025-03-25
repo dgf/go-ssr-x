@@ -28,7 +28,7 @@ func (d *database) Close() {
 }
 
 func (d *database) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
-	sql := "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
+	const sql = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
 	if _, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
@@ -38,7 +38,7 @@ func (d *database) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error
 }
 
 func (d *database) TaskCount(ctx context.Context) (int, error) {
-	sql := "SELECT count(*) FROM task"
+	const sql = "SELECT count(*) FROM task"
 
 	var count int
 	if err := d.db.QueryRow(ctx, sql).Scan(&count); err != nil {
@@ -48,7 +48,7 @@ func (d *database) TaskCount(ctx context.Context) (int, error) {
 }
 
 func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	sql := "DELETE FROM task WHERE id = $1"
+	const sql = "DELETE FROM task WHERE id = $1"
 
 	if tag, err := d.db.Exec(ctx, sql, id); err != nil {
 		return err
@@ -59,7 +59,7 @@ func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 }
 
 func (d *database) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
-	sql := "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
+	const sql = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 
 	if rows, err := d.db.Query(ctx, sql, id); err != nil {
 		return Task{}, false, err
@@ -74,9 +74,9 @@ func (d *database) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
 }
 
 func (d *database) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
-	resultsQuery := "SELECT count(*) FROM task WHERE subject LIKE $1"
-	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d",
-		"SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1",
+	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
+	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
+	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
 		taskOrderClause(query.Sort, query.Order), query.Size, (query.Page-1)*query.Size)
 	subjectLike := likeArg(query.Filter)
 
@@ -101,7 +101,7 @@ func (d *database) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error)
 }
 
 func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
-	sql := "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
+	const sql = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
 	if tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
 		return Task{}, false, err
