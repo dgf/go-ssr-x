@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/dgf/go-ssr-x/entity"
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
 
@@ -34,10 +35,8 @@ func NewFile(ctx context.Context, dsn string) (entity.Storage, error) {
 	}
 }
 
-func (f *file) Close() {
-	if err := f.db.Close(); err != nil {
-		panic(err)
-	}
+func (f *file) Close() error {
+	return f.db.Close()
 }
 
 func (f *file) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
@@ -99,7 +98,11 @@ func (f *file) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPa
 	if tx, err := f.db.BeginTx(ctx, nil); err != nil {
 		return entity.TaskPage{}, err
 	} else {
-		defer tx.Rollback()
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				log.Error("task list query read rollback failed", err)
+			}
+		}()
 	}
 
 	var results int

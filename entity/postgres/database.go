@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dgf/go-ssr-x/entity"
+	"github.com/dgf/go-ssr-x/log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,8 +25,9 @@ func NewDatabase(ctx context.Context, connStr string) (entity.Storage, error) {
 	}
 }
 
-func (d *database) Close() {
+func (d *database) Close() error {
 	d.db.Close()
+	return nil
 }
 
 func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
@@ -84,7 +86,11 @@ func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.Ta
 	if tx, err := d.db.Begin(ctx); err != nil {
 		return entity.TaskPage{}, err
 	} else {
-		defer tx.Rollback(ctx)
+		defer func() {
+			if err := tx.Rollback(ctx); err != nil {
+				log.Error("task list query read rollback failed", err)
+			}
+		}()
 	}
 
 	var results int
@@ -97,7 +103,7 @@ func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.Ta
 	} else if tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.TaskOverview]); err != nil {
 		return entity.TaskPage{Count: count, Results: results}, err
 	} else {
-		return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, err
+		return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 	}
 }
 
