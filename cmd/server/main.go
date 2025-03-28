@@ -8,8 +8,10 @@ import (
 
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/entity/postgres"
+	"github.com/dgf/go-ssr-x/entity/sqlite3"
 	"github.com/dgf/go-ssr-x/log"
 	"github.com/dgf/go-ssr-x/web"
+	"golang.org/x/exp/slices"
 )
 
 type StorageType int
@@ -26,6 +28,7 @@ type ServerConfig struct {
 
 const (
 	MemoryStorage StorageType = iota
+	FileStorage
 	DatabaseStorage
 
 	defaultAddr    = "0.0.0.0:3000"
@@ -36,15 +39,20 @@ func parseFlags() (ServerConfig, error) {
 	var addr, connStr, storage string
 
 	flag.StringVar(&addr, "address", defaultAddr, "web server address")
-	flag.StringVar(&storage, "storage", "memory", "memory or database")
+	flag.StringVar(&storage, "storage", "memory", "memory, file or database")
 	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
 	flag.Parse()
 
 	config := ServerConfig{Addr: addr, Storage: StorageConfig{Type: MemoryStorage, ConnStr: connStr}}
 
-	if storage != "memory" && storage != "database" {
+	if !slices.Contains([]string{"memory", "file", "database"}, storage) {
 		flag.Usage()
 		return config, fmt.Errorf("unknown storage type: %s", storage)
+	} else if storage == "file" {
+		config.Storage.Type = FileStorage
+		if connStr == defaultConnStr {
+			config.Storage.ConnStr = ".tasks.sqlite"
+		}
 	} else if storage == "database" {
 		config.Storage.Type = DatabaseStorage
 	}
@@ -59,6 +67,9 @@ func createStorage(ctx context.Context, config ServerConfig) (entity.Storage, er
 		return entity.NewMemory(), nil
 	case DatabaseStorage:
 		return postgres.NewDatabase(ctx, config.Storage.ConnStr)
+	case FileStorage:
+		log.Info("use file storage", "config", config)
+		return sqlite3.NewFile(ctx, config.Storage.ConnStr)
 	default:
 		return nil, fmt.Errorf("unknown storage type: %d", config.Storage.Type)
 	}
