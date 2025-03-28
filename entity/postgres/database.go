@@ -1,4 +1,4 @@
-package entity
+package postgres
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dgf/go-ssr-x/entity"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +16,7 @@ type database struct {
 	db *pgxpool.Pool
 }
 
-func NewDatabase(ctx context.Context, connStr string) (Storage, error) {
+func NewDatabase(ctx context.Context, connStr string) (entity.Storage, error) {
 	if dbpool, err := pgxpool.New(ctx, connStr); err != nil {
 		return nil, err
 	} else {
@@ -27,7 +28,7 @@ func (d *database) Close() {
 	d.db.Close()
 }
 
-func (d *database) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
+func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
 	const sql = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
@@ -58,12 +59,12 @@ func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (d *database) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
+func (d *database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
 	const sql = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 
 	if rows, err := d.db.Query(ctx, sql, id); err != nil {
-		return Task{}, false, err
-	} else if task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[Task]); err != nil {
+		return entity.Task{}, false, err
+	} else if task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[entity.Task]); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return task, false, nil
 		}
@@ -73,7 +74,7 @@ func (d *database) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
 	}
 }
 
-func (d *database) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
+func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
 	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
 	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
 	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
@@ -81,32 +82,32 @@ func (d *database) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error)
 	subjectLike := likeArg(query.Filter)
 
 	if tx, err := d.db.Begin(ctx); err != nil {
-		return TaskPage{}, err
+		return entity.TaskPage{}, err
 	} else {
 		defer tx.Rollback(ctx)
 	}
 
 	var results int
 	if count, err := d.TaskCount(ctx); err != nil {
-		return TaskPage{}, err
+		return entity.TaskPage{}, err
 	} else if err := d.db.QueryRow(ctx, resultsQuery, subjectLike).Scan(&results); err != nil {
-		return TaskPage{Count: count}, err
+		return entity.TaskPage{Count: count}, err
 	} else if rows, err := d.db.Query(ctx, rowsQuery, subjectLike); err != nil {
-		return TaskPage{Count: count, Results: results}, err
-	} else if tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[TaskOverview]); err != nil {
-		return TaskPage{Count: count, Results: results}, err
+		return entity.TaskPage{Count: count, Results: results}, err
+	} else if tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.TaskOverview]); err != nil {
+		return entity.TaskPage{Count: count, Results: results}, err
 	} else {
-		return TaskPage{Count: count, Results: results, Tasks: tasks}, err
+		return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, err
 	}
 }
 
-func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
+func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	const sql = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
 	if tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
-		return Task{}, false, err
+		return entity.Task{}, false, err
 	} else if tag.RowsAffected() != 1 {
-		return Task{}, false, fmt.Errorf("no row for %s", id)
+		return entity.Task{}, false, fmt.Errorf("no row for %s", id)
 	}
 	return d.Task(ctx, id)
 }
@@ -115,25 +116,25 @@ func likeArg(arg string) string {
 	return "%" + strings.ReplaceAll(arg, "%", "") + "%"
 }
 
-func taskSort(sort TaskSort) string {
+func taskSort(sort entity.TaskSort) string {
 	switch sort {
-	case TaskSortCreatedAt:
+	case entity.TaskSortCreatedAt:
 		return "created_at"
-	case TaskSortDueDate:
+	case entity.TaskSortDueDate:
 		return "due_date"
-	case TaskSortSubject:
+	case entity.TaskSortSubject:
 		return "subject"
 	}
 	return "id"
 }
 
-func toSQLOrder(order SortOrder) string {
-	if order == AscendingOrder {
+func toSQLOrder(order entity.SortOrder) string {
+	if order == entity.AscendingOrder {
 		return "ASC"
 	}
 	return "DESC"
 }
 
-func taskOrderClause(sort TaskSort, order SortOrder) string {
+func taskOrderClause(sort entity.TaskSort, order entity.SortOrder) string {
 	return fmt.Sprintf("%s %s", taskSort(sort), toSQLOrder(order))
 }

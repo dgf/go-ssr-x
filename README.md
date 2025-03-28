@@ -79,7 +79,7 @@ Install database migration tool and run migrations
 
 ```sh
 go install github.com/pressly/goose/v3/cmd/goose@latest
-goose -dir entity postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" up
+goose -dir entity/postgres postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" up
 ```
 
 ## Features (non functional techy stuff)

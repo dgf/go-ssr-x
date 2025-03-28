@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dgf/go-ssr-x/entity"
+	"github.com/dgf/go-ssr-x/entity/postgres"
 	"github.com/dgf/go-ssr-x/log"
 	"github.com/dgf/go-ssr-x/web"
 )
@@ -57,7 +58,7 @@ func createStorage(ctx context.Context, config ServerConfig) (entity.Storage, er
 		log.Warn("running with in-memory storage, the data will be lost when restarting")
 		return entity.NewMemory(), nil
 	case DatabaseStorage:
-		return entity.NewDatabase(ctx, config.Storage.ConnStr)
+		return postgres.NewDatabase(ctx, config.Storage.ConnStr)
 	default:
 		return nil, fmt.Errorf("unknown storage type: %d", config.Storage.Type)
 	}
