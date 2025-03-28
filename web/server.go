@@ -19,19 +19,25 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
-var (
-	mux         *http.ServeMux
-	storage     entity.Storage
-	storageType string
-	connStr     string
-)
+type server struct {
+	addr    string
+	storage entity.Storage
+	mux     *http.ServeMux
+}
 
-func init() {
-	mux = http.NewServeMux()
-	mux.Handle("/assets/", http.FileServer(http.FS(assets)))
-	mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
+func Serve(addr string, storage entity.Storage) error {
+	s := server{
+		addr:    addr,
+		storage: storage,
+		mux:     http.NewServeMux(),
+	}
+
+	s.mux.Handle("/assets/", http.FileServer(http.FS(assets)))
+	s.mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
 	})
+
+	return s.serve()
 }
 
 func acceptLanguageOrDefault(r *http.Request) language.Tag {
@@ -46,8 +52,8 @@ func acceptLanguageOrDefault(r *http.Request) language.Tag {
 	}
 }
 
-func route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
-	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+func (s *server) route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
+	s.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		lang := acceptLanguageOrDefault(r)
@@ -82,19 +88,19 @@ func panicRecovery(next http.Handler) http.Handler {
 	})
 }
 
-func Serve(addr string, storage entity.Storage) error {
-	taskServer := NewTaskServer(storage)
+func (s *server) serve() error {
+	taskServer := NewTaskServer(s.storage)
 
-	route("GET /tasks/new", taskServer.TaskCreateForm)
-	route("GET /tasks/rows", taskServer.TaskRows)
-	route("GET /tasks", taskServer.TasksSection)
-	route("POST /tasks", taskServer.CreateTask)
-	route("GET /tasks/{id}", taskServer.ShowTask)
-	route("GET /tasks/{id}/edit", taskServer.EditTask)
-	route("DELETE /tasks/{id}", taskServer.DeleteTask)
-	route("PUT /tasks/{id}", taskServer.UpdateTask)
+	s.route("GET /tasks/new", taskServer.TaskCreateForm)
+	s.route("GET /tasks/rows", taskServer.TaskRows)
+	s.route("GET /tasks", taskServer.TasksSection)
+	s.route("POST /tasks", taskServer.CreateTask)
+	s.route("GET /tasks/{id}", taskServer.ShowTask)
+	s.route("GET /tasks/{id}/edit", taskServer.EditTask)
+	s.route("DELETE /tasks/{id}", taskServer.DeleteTask)
+	s.route("PUT /tasks/{id}", taskServer.UpdateTask)
 
-	route("/", func(w http.ResponseWriter, r *http.Request) templ.Component {
+	s.route("/", func(w http.ResponseWriter, r *http.Request) templ.Component {
 		if r.URL.Path == "/" {
 			return taskServer.TasksSection(w, r)
 		}
@@ -108,8 +114,8 @@ func Serve(addr string, storage entity.Storage) error {
 	})
 
 	return (&http.Server{
-		Addr:         addr,
-		Handler:      panicRecovery(mux),
+		Addr:         s.addr,
+		Handler:      panicRecovery(s.mux),
 		WriteTimeout: 13 * time.Second,
 		ReadTimeout:  17 * time.Second,
 		IdleTimeout:  37 * time.Second,
