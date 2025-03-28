@@ -40,16 +40,6 @@ func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID
 	return id, nil
 }
 
-func (d *database) TaskCount(ctx context.Context) (int, error) {
-	const sql = "SELECT count(*) FROM task"
-
-	var count int
-	if err := d.db.QueryRow(ctx, sql).Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
 func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const sql = "DELETE FROM task WHERE id = $1"
 
@@ -74,6 +64,16 @@ func (d *database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, e
 	} else {
 		return task, true, nil
 	}
+}
+
+func (d *database) TaskCount(ctx context.Context) (int, error) {
+	const sql = "SELECT count(*) FROM task"
+
+	var count int
+	if err := d.db.QueryRow(ctx, sql).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {

@@ -88,12 +88,11 @@ func (f *file) TaskCount(ctx context.Context) (int, error) {
 }
 
 func (f *file) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
+	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
+	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
+	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
+		taskOrderClause(query.Sort, query.Order), query.Size, (query.Page-1)*query.Size)
 	subjectLike := likeArg(query.Filter)
-	sortOrder := taskOrderClause(query.Sort, query.Order)
-	resultsQuery := "SELECT count(*) FROM task WHERE subject LIKE $1"
-	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d",
-		"SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1",
-		sortOrder, query.Size, (query.Page-1)*query.Size)
 
 	if tx, err := f.db.BeginTx(ctx, nil); err != nil {
 		return entity.TaskPage{}, err
