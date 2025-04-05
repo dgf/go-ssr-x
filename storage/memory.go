@@ -1,4 +1,4 @@
-package entity
+package storage
 
 import (
 	"cmp"
@@ -8,17 +8,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dgf/go-ssr-x/entity"
 	"github.com/google/uuid"
 )
 
 type memory struct {
-	tasks map[uuid.UUID]Task
+	tasks map[uuid.UUID]entity.Task
 	sync.RWMutex
 }
 
-func NewMemory() Storage {
+func NewMemory() entity.Storage {
 	return &memory{
-		tasks: map[uuid.UUID]Task{},
+		tasks: map[uuid.UUID]entity.Task{},
 	}
 }
 
@@ -26,12 +27,12 @@ func (m *memory) Close() error {
 	return nil
 }
 
-func (m *memory) AddTask(ctx context.Context, data TaskData) (uuid.UUID, error) {
+func (m *memory) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	id := uuid.New()
-	m.tasks[id] = Task{
+	m.tasks[id] = entity.Task{
 		Id:          id,
 		Subject:     data.Subject,
 		CreatedAt:   time.Now(),
@@ -48,7 +49,7 @@ func (m *memory) TaskCount(ctx context.Context) (int, error) {
 	return len(m.tasks), nil
 }
 
-func (m *memory) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
+func (m *memory) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -56,11 +57,11 @@ func (m *memory) Task(ctx context.Context, id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
+func (m *memory) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
 	m.RLock()
 	defer m.RUnlock()
 
-	tasks := []Task{}
+	tasks := []entity.Task{}
 	for _, t := range m.tasks {
 		if strings.Contains(t.Subject, query.Filter) {
 			tasks = append(tasks, t)
@@ -70,19 +71,19 @@ func (m *memory) Tasks(ctx context.Context, query TaskQuery) (TaskPage, error) {
 	slices.SortStableFunc(tasks, taskSortFunc(query.Sort, query.Order))
 	pageStart := (query.Page - 1) * query.Size
 	if pageStart > len(tasks) {
-		return TaskPage{}, nil
+		return entity.TaskPage{}, nil
 	}
 
-	page := TaskPage{
+	page := entity.TaskPage{
 		Count:   len(m.tasks),
 		Results: len(tasks),
 		Start:   pageStart,
-		Tasks:   []TaskOverview{},
+		Tasks:   []entity.TaskOverview{},
 	}
 
 	pageEnd := min(pageStart+query.Size, len(tasks))
 	for _, t := range tasks[pageStart:pageEnd] {
-		page.Tasks = append(page.Tasks, TaskOverview{
+		page.Tasks = append(page.Tasks, entity.TaskOverview{
 			Id:        t.Id,
 			CreatedAt: t.CreatedAt,
 			DueDate:   t.DueDate,
@@ -101,7 +102,7 @@ func (m *memory) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (m *memory) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
+func (m *memory) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -116,35 +117,35 @@ func (m *memory) UpdateTask(ctx context.Context, id uuid.UUID, data TaskData) (T
 	}
 }
 
-func taskSortValue(sort TaskSort) func(Task) string {
+func taskSortValue(sort entity.TaskSort) func(entity.Task) string {
 	switch sort {
-	case TaskSortCreatedAt:
-		return func(t Task) string {
+	case entity.TaskSortCreatedAt:
+		return func(t entity.Task) string {
 			return t.CreatedAt.String()
 		}
-	case TaskSortDueDate:
-		return func(t Task) string {
+	case entity.TaskSortDueDate:
+		return func(t entity.Task) string {
 			return t.DueDate.String()
 		}
-	case TaskSortSubject:
-		return func(t Task) string {
+	case entity.TaskSortSubject:
+		return func(t entity.Task) string {
 			return t.Subject
 		}
 	}
 
-	return func(t Task) string {
+	return func(t entity.Task) string {
 		return t.Id.String()
 	}
 }
 
-func taskSortFunc(sort TaskSort, order SortOrder) func(i, j Task) int {
+func taskSortFunc(sort entity.TaskSort, order entity.SortOrder) func(i, j entity.Task) int {
 	value := taskSortValue(sort)
-	if order == AscendingOrder {
-		return func(i, j Task) int {
+	if order == entity.AscendingOrder {
+		return func(i, j entity.Task) int {
 			return cmp.Compare(value(i), value(j))
 		}
 	}
-	return func(i, j Task) int {
+	return func(i, j entity.Task) int {
 		return cmp.Compare(value(j), value(i))
 	}
 }
