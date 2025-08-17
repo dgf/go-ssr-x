@@ -19,15 +19,17 @@ type database struct {
 }
 
 func NewDatabase(ctx context.Context, connStr string) (entity.Storage, error) {
-	if dbpool, err := pgxpool.New(ctx, connStr); err != nil {
+	dbpool, err := pgxpool.New(ctx, connStr)
+	if err != nil {
 		return nil, err
-	} else {
-		return &database{db: dbpool}, nil
 	}
+
+	return &database{db: dbpool}, nil
 }
 
 func (d *database) Close() error {
 	d.db.Close()
+
 	return nil
 }
 
@@ -35,45 +37,58 @@ func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID
 	const sql = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
-	if _, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
+	_, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description)
+	if err != nil {
 		return uuid.Nil, err
 	}
+
 	return id, nil
 }
 
 func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const sql = "DELETE FROM task WHERE id = $1"
 
-	if tag, err := d.db.Exec(ctx, sql, id); err != nil {
+	tag, err := d.db.Exec(ctx, sql, id)
+	if err != nil {
 		return err
-	} else if tag.RowsAffected() != 1 {
+	}
+
+	if tag.RowsAffected() != 1 {
 		return fmt.Errorf("no row for %s", id)
 	}
+
 	return nil
 }
 
 func (d *database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
 	const sql = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 
-	if rows, err := d.db.Query(ctx, sql, id); err != nil {
+	rows, err := d.db.Query(ctx, sql, id)
+	if err != nil {
 		return entity.Task{}, false, err
-	} else if task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[entity.Task]); err != nil {
+	}
+
+	task, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[entity.Task])
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return task, false, nil
 		}
+
 		return task, false, err
-	} else {
-		return task, true, nil
 	}
+
+	return task, true, nil
 }
 
 func (d *database) TaskCount(ctx context.Context) (int, error) {
 	const sql = "SELECT count(*) FROM task"
 
 	var count int
-	if err := d.db.QueryRow(ctx, sql).Scan(&count); err != nil {
+	err := d.db.QueryRow(ctx, sql).Scan(&count)
+	if err != nil {
 		return 0, err
 	}
+
 	return count, nil
 }
 
@@ -84,38 +99,54 @@ func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.Ta
 		taskOrderClause(query.Sort, query.Order), query.Size, (query.Page-1)*query.Size)
 	subjectLike := likeArg(query.Filter)
 
-	if tx, err := d.db.Begin(ctx); err != nil {
+	tx, err := d.db.Begin(ctx)
+	if err != nil {
 		return entity.TaskPage{}, err
-	} else {
-		defer func() {
-			if err := tx.Rollback(ctx); err != nil {
-				log.Error("task list query read rollback failed", err)
-			}
-		}()
 	}
 
+	defer func() {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			log.Error("task list query read rollback failed", err)
+		}
+	}()
+
 	var results int
-	if count, err := d.TaskCount(ctx); err != nil {
+	count, err := d.TaskCount(ctx)
+	if err != nil {
 		return entity.TaskPage{}, err
-	} else if err := d.db.QueryRow(ctx, resultsQuery, subjectLike).Scan(&results); err != nil {
-		return entity.TaskPage{Count: count}, err
-	} else if rows, err := d.db.Query(ctx, rowsQuery, subjectLike); err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
-	} else if tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.TaskOverview]); err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
-	} else {
-		return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 	}
+
+	err = d.db.QueryRow(ctx, resultsQuery, subjectLike).Scan(&results)
+	if err != nil {
+		return entity.TaskPage{Count: count}, err
+	}
+
+	rows, err := d.db.Query(ctx, rowsQuery, subjectLike)
+	if err != nil {
+		return entity.TaskPage{Count: count, Results: results}, err
+	}
+
+	tasks, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.TaskOverview])
+	if err != nil {
+		return entity.TaskPage{Count: count, Results: results}, err
+	}
+
+	return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 }
 
 func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	const sql = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
-	if tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description); err != nil {
+	tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description)
+	if err != nil {
 		return entity.Task{}, false, err
-	} else if tag.RowsAffected() != 1 {
+	}
+
+	if tag.RowsAffected() != 1 {
 		return entity.Task{}, false, fmt.Errorf("no row for %s", id)
 	}
+
 	return d.Task(ctx, id)
 }
 
@@ -132,6 +163,7 @@ func taskSort(sort entity.TaskSort) string {
 	case entity.TaskSortSubject:
 		return "subject"
 	}
+
 	return "id"
 }
 
@@ -139,6 +171,7 @@ func toSQLOrder(order entity.SortOrder) string {
 	if order == entity.AscendingOrder {
 		return "ASC"
 	}
+
 	return "DESC"
 }
 

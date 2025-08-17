@@ -26,6 +26,8 @@ linters:
     - mirror
     # - mnd
     - nestif
+    - nlreturn
+    - noinlineerr
     # - nonamedreturns
     - nosprintfhostport
     - perfsprint
