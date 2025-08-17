@@ -1,16 +1,15 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE task (
-    id uuid NOT NULL,
+    id uuid PRIMARY KEY,
     subject varchar(255),
     description text,
-    created_at timestamp NOT NULL DEFAULT NOW(),
-    due_date date,
-    PRIMARY KEY(id)
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    due_date date
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP table task;
+DROP TABLE task;
 -- +goose StatementEnd

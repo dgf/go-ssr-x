@@ -8,9 +8,8 @@ import (
 
 	"github.com/dgf/go-ssr-x/entity"
 	"github.com/dgf/go-ssr-x/log"
-	"github.com/dgf/go-ssr-x/storage"
-	"github.com/dgf/go-ssr-x/storage/postgres"
-	"github.com/dgf/go-ssr-x/storage/sqlite3"
+	"github.com/dgf/go-ssr-x/postgres"
+	"github.com/dgf/go-ssr-x/sqlite3"
 	"github.com/dgf/go-ssr-x/web"
 	"golang.org/x/exp/slices"
 )
@@ -65,7 +64,7 @@ func createStorage(ctx context.Context, config ServerConfig) (entity.Storage, er
 	switch config.Storage.Type {
 	case MemoryStorage:
 		log.Warn("running with in-memory storage, the data will be lost when restarting")
-		return storage.NewMemory(), nil
+		return entity.NewMemory(), nil
 	case DatabaseStorage:
 		return postgres.NewDatabase(ctx, config.Storage.ConnStr)
 	case FileStorage:

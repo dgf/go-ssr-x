@@ -1,3 +1,4 @@
+// Package postgres provides a PostgreSQL backed entity storage.
 package postgres
 
 import (

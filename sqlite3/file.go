@@ -1,3 +1,4 @@
+// Package sqlite3 provides a SQLite version 3 backed entity storage.
 package sqlite3
 
 import (
