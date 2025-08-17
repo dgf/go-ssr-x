@@ -28,7 +28,7 @@ linters:
     - nestif
     - nlreturn
     - noinlineerr
-    # - nonamedreturns
+    - nonamedreturns
     - nosprintfhostport
     - perfsprint
     - prealloc

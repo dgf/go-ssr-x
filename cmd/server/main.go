@@ -12,6 +12,8 @@ import (
 	"github.com/dgf/go-ssr-x/sqlite3"
 	"github.com/dgf/go-ssr-x/web"
 	"golang.org/x/exp/slices"
+
+	_ "modernc.org/sqlite"
 )
 
 type StorageType int
@@ -47,38 +49,59 @@ func parseFlags() (ServerConfig, error) {
 
 	if !slices.Contains([]string{"memory", "file", "database"}, storage) {
 		flag.Usage()
+
 		return config, fmt.Errorf("unknown storage type: %s", storage)
-	} else if storage == "file" {
+	}
+
+	switch storage {
+	case "database":
+		config.Storage.Type = DatabaseStorage
+	case "file":
 		config.Storage.Type = FileStorage
 		if connStr == defaultConnStr {
 			config.Storage.ConnStr = ".tasks.sqlite"
 		}
-	} else if storage == "database" {
-		config.Storage.Type = DatabaseStorage
 	}
 
 	return config, nil
 }
 
+func createMemoryStorage() (entity.Storage, error) {
+	log.Warn("running with in-memory storage, the data will be lost when restarting")
+
+	return entity.NewMemory(), nil
+}
+
+func createDatabaseStorage(ctx context.Context, connStr string) (entity.Storage, error) {
+	return postgres.NewDatabase(ctx, connStr)
+}
+
+func createFileStorage(ctx context.Context, path string) (entity.Storage, error) {
+	log.Info("use file storage", "path", path)
+
+	return sqlite3.NewFile(ctx, path)
+}
+
 func createStorage(ctx context.Context, config ServerConfig) (entity.Storage, error) {
 	switch config.Storage.Type {
 	case MemoryStorage:
-		log.Warn("running with in-memory storage, the data will be lost when restarting")
-		return entity.NewMemory(), nil
+		return createMemoryStorage()
 	case DatabaseStorage:
-		return postgres.NewDatabase(ctx, config.Storage.ConnStr)
+		return createDatabaseStorage(ctx, config.Storage.ConnStr)
 	case FileStorage:
-		log.Info("use file storage", "config", config)
-		return sqlite3.NewFile(ctx, config.Storage.ConnStr)
-	default:
-		return nil, fmt.Errorf("unknown storage type: %d", config.Storage.Type)
+		return createFileStorage(ctx, config.Storage.ConnStr)
 	}
+
+	return nil, fmt.Errorf("unknown storage type: %d", config.Storage.Type)
 }
 
 func initStorage(ctx context.Context, storage entity.Storage) error {
-	if taskCount, err := storage.TaskCount(ctx); err != nil {
+	taskCount, err := storage.TaskCount(ctx)
+	if err != nil {
 		return fmt.Errorf("initial storage access failed: %w", err)
-	} else if taskCount == 0 {
+	}
+
+	if taskCount == 0 {
 		log.Info("initialize storage with some tasks")
 		for i := range 100 {
 			_, err := storage.AddTask(ctx, entity.TaskData{
@@ -91,22 +114,29 @@ func initStorage(ctx context.Context, storage entity.Storage) error {
 			}
 		}
 	}
+
 	return nil
 }
 
 func main() {
 	ctx := context.Background()
 
-	if config, err := parseFlags(); err != nil {
+	config, err := parseFlags()
+	if err != nil {
 		panic(err)
-	} else if storage, err := createStorage(ctx, config); err != nil {
-		panic(err)
-	} else if err := initStorage(ctx, storage); err != nil {
-		panic(err)
-	} else {
-		defer storage.Close()
-
-		log.Info("Listening on " + config.Addr)
-		log.Error("listen and serve failed", web.Serve(config.Addr, storage))
 	}
+
+	storage, err := createStorage(ctx, config)
+	if err != nil {
+		panic(err)
+	}
+
+	err = initStorage(ctx, storage)
+	if err != nil {
+		panic(err)
+	}
+	defer storage.Close()
+
+	log.Info("Listening on " + config.Addr)
+	log.Error("listen and serve failed", web.Serve(config.Addr, storage))
 }
