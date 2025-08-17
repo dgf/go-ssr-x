@@ -56,7 +56,7 @@ templ TaskCreateForm() {
 
 templ TaskEditForm(task entity.Task) {
 	<form
-		hx-put={ "/tasks/" + task.Id.String() }
+		hx-put={ "/tasks/" + task.ID.String() }
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-select-oob="#snackbar:afterbegin"
@@ -95,7 +95,7 @@ templ TaskEditForm(task entity.Task) {
 					{ translate(ctx, "task_save") }
 				</button>
 				<button
-					hx-get={ "/tasks/" + task.Id.String() }
+					hx-get={ "/tasks/" + task.ID.String() }
 					class="rounded-full bg-stone-300 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:hover:bg-stone-600"
 				>
 					{ translate(ctx, "task_cancel") }
@@ -127,7 +127,7 @@ templ TaskDetails(task entity.Task) {
 		<div class="flex flex-row justify-between py-3">
 			<div hx-disabled-elt="button">
 				<button
-					hx-get={ "/tasks/" + task.Id.String() + "/edit" }
+					hx-get={ "/tasks/" + task.ID.String() + "/edit" }
 					hx-push-url="true"
 					class="rounded-full bg-sky-500 px-3 py-1 font-semibold capitalize shadow-lg hover:bg-sky-400 disabled:opacity-90 dark:bg-sky-800 dark:hover:bg-sky-700"
 				>
@@ -147,7 +147,7 @@ templ TaskDetails(task entity.Task) {
 
 templ TaskRow(task entity.TaskOverview) {
 	<tr
-		id={ task.Id.String() }
+		id={ task.ID.String() }
 		data-created-at={ task.CreatedAt.Format(time.DateTime) }
 		class="even:bg-stone-300 dark:even:bg-stone-700"
 	>
@@ -160,14 +160,14 @@ templ TaskRow(task entity.TaskOverview) {
 		<td class="p-2">{ task.Subject }</td>
 		<td class="flex gap-1 p-2">
 			<button
-				hx-get={ "/tasks/" + task.Id.String() }
+				hx-get={ "/tasks/" + task.ID.String() }
 				hx-push-url="true"
 				class="h-8 w-8 rounded-full bg-sky-500 px-2 py-1 shadow-lg hover:bg-sky-400 dark:bg-sky-800 dark:hover:bg-sky-700"
 			>
 				<img src="/assets/icons/magnify.svg"/>
 			</button>
 			<button
-				hx-delete={ "/tasks/" + task.Id.String() }
+				hx-delete={ "/tasks/" + task.ID.String() }
 				hx-confirm={ translate(ctx, "task_confirm_delete") }
 				hx-target="closest tr"
 				hx-swap="outerHTML swap:1s"

@@ -33,7 +33,7 @@ func (m *memory) AddTask(_ context.Context, data TaskData) (uuid.UUID, error) {
 
 	id := uuid.New()
 	m.tasks[id] = Task{
-		Id:          id,
+		ID:          id,
 		Subject:     data.Subject,
 		CreatedAt:   time.Now(),
 		DueDate:     data.DueDate,
@@ -86,7 +86,7 @@ func (m *memory) Tasks(_ context.Context, query TaskQuery) (TaskPage, error) {
 	pageEnd := min(pageStart+query.Size, len(tasks))
 	for _, t := range tasks[pageStart:pageEnd] {
 		page.Tasks = append(page.Tasks, TaskOverview{
-			Id:        t.Id,
+			ID:        t.ID,
 			CreatedAt: t.CreatedAt,
 			DueDate:   t.DueDate,
 			Subject:   t.Subject,
@@ -139,7 +139,7 @@ func taskSortValue(sort TaskSort) func(Task) string {
 	}
 
 	return func(t Task) string {
-		return t.Id.String()
+		return t.ID.String()
 	}
 }
 

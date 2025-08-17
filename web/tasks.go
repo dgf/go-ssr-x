@@ -149,7 +149,7 @@ func (ts *TaskServer) EditTask(w http.ResponseWriter, r *http.Request) templ.Com
 
 func (ts *TaskServer) DeleteTask(w http.ResponseWriter, r *http.Request) templ.Component {
 	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		if err := ts.storage.DeleteTask(r.Context(), task.Id); err != nil {
+		if err := ts.storage.DeleteTask(r.Context(), task.ID); err != nil {
 			log.Warn(fmt.Sprintf("task deletion failed: %v", err))
 			return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 		}
@@ -165,14 +165,14 @@ func (ts *TaskServer) UpdateTask(w http.ResponseWriter, r *http.Request) templ.C
 	}
 
 	return ts.handleTask(w, r, func(task entity.Task) templ.Component {
-		if updated, ok, err := ts.storage.UpdateTask(r.Context(), task.Id, form2TaskData(r)); err != nil {
+		if updated, ok, err := ts.storage.UpdateTask(r.Context(), task.ID, form2TaskData(r)); err != nil {
 			log.Warn(fmt.Sprintf("task update failed: %v ", err))
 			return clientError(w, r, http.StatusInternalServerError, "internal_server_error", nil)
 		} else if !ok { // e.g. delete while user is updating
 			return clientError(w, r, http.StatusConflict, "conflict_task_update", nil)
 		} else {
 			return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-				idData := map[string]string{"id": updated.Id.String()}
+				idData := map[string]string{"id": updated.ID.String()}
 				if err := view.SuccessNotify("ok_task_updated", idData).Render(ctx, w); err != nil {
 					return err
 				}

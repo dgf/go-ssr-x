@@ -8,7 +8,7 @@ import (
 )
 
 type Task struct {
-	Id          uuid.UUID
+	ID          uuid.UUID
 	CreatedAt   time.Time
 	DueDate     time.Time
 	Subject     string
@@ -25,7 +25,7 @@ type TaskOverview struct {
 	CreatedAt time.Time
 	DueDate   time.Time
 	Subject   string
-	Id        uuid.UUID
+	ID        uuid.UUID
 }
 
 type TaskSort int64

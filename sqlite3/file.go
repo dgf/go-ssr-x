@@ -91,7 +91,7 @@ func (f *file) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error
 		return task, false, err
 	}
 
-	task.Id = id
+	task.ID = id
 
 	return task, true, nil
 }
@@ -196,7 +196,7 @@ func scanTaskOverviews(rows *sql.Rows) ([]entity.TaskOverview, error) {
 
 	for rows.Next() {
 		var task entity.TaskOverview
-		err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject)
+		err := rows.Scan(&task.ID, &task.CreatedAt, &task.DueDate, &task.Subject)
 		if err != nil {
 			return tasks, err
 		}
