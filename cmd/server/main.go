@@ -16,28 +16,29 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type StorageType int
+type storageType int
 
-type StorageConfig struct {
-	Type    StorageType
-	ConnStr string
+type storageConfig struct {
+	storageType storageType
+	connection  string
 }
 
-type ServerConfig struct {
-	Addr    string
-	Storage StorageConfig
+type serverConfig struct {
+	addr    string
+	storage storageConfig
 }
 
 const (
-	MemoryStorage StorageType = iota
-	FileStorage
-	DatabaseStorage
+	memoryStorage storageType = iota
+	fileStorage
+	databaseStorage
 
-	defaultAddr    = "0.0.0.0:3000"
-	defaultConnStr = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
+	defaultAddr       = "0.0.0.0:3000"
+	defaultConnStr    = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
+	defaultSqliteFile = ".tasks.sqlite"
 )
 
-func parseFlags() (ServerConfig, error) {
+func parseFlags() (serverConfig, error) {
 	var addr, connStr, storage string
 
 	flag.StringVar(&addr, "address", defaultAddr, "web server address")
@@ -45,7 +46,7 @@ func parseFlags() (ServerConfig, error) {
 	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
 	flag.Parse()
 
-	config := ServerConfig{Addr: addr, Storage: StorageConfig{Type: MemoryStorage, ConnStr: connStr}}
+	config := serverConfig{addr: addr, storage: storageConfig{storageType: memoryStorage, connection: connStr}}
 
 	if !slices.Contains([]string{"memory", "file", "database"}, storage) {
 		flag.Usage()
@@ -55,11 +56,11 @@ func parseFlags() (ServerConfig, error) {
 
 	switch storage {
 	case "database":
-		config.Storage.Type = DatabaseStorage
+		config.storage.storageType = databaseStorage
 	case "file":
-		config.Storage.Type = FileStorage
+		config.storage.storageType = fileStorage
 		if connStr == defaultConnStr {
-			config.Storage.ConnStr = ".tasks.sqlite"
+			config.storage.connection = defaultSqliteFile
 		}
 	}
 
@@ -82,17 +83,17 @@ func createFileStorage(ctx context.Context, path string) (entity.Storage, error)
 	return sqlite3.NewFile(ctx, path)
 }
 
-func createStorage(ctx context.Context, config ServerConfig) (entity.Storage, error) {
-	switch config.Storage.Type {
-	case MemoryStorage:
+func createStorage(ctx context.Context, config serverConfig) (entity.Storage, error) {
+	switch config.storage.storageType {
+	case memoryStorage:
 		return createMemoryStorage()
-	case DatabaseStorage:
-		return createDatabaseStorage(ctx, config.Storage.ConnStr)
-	case FileStorage:
-		return createFileStorage(ctx, config.Storage.ConnStr)
+	case databaseStorage:
+		return createDatabaseStorage(ctx, config.storage.connection)
+	case fileStorage:
+		return createFileStorage(ctx, config.storage.connection)
 	}
 
-	return nil, fmt.Errorf("unknown storage type: %d", config.Storage.Type)
+	return nil, fmt.Errorf("unknown storage type: %d", config.storage.storageType)
 }
 
 func initStorage(ctx context.Context, storage entity.Storage) error {
@@ -137,6 +138,6 @@ func main() {
 	}
 	defer storage.Close()
 
-	log.Info("Listening on " + config.Addr)
-	log.Error("listen and serve failed", web.Serve(config.Addr, storage))
+	log.Info("Listening on " + config.addr)
+	log.Error("listen and serve failed", web.Serve(config.addr, storage))
 }
