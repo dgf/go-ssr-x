@@ -8,9 +8,9 @@ import (
 	"github.com/dgf/go-ssr-x/log"
 )
 
-type ViewContextKey string
+type ContextKey string
 
-const LocaleContextKey ViewContextKey = "locale"
+const LocaleContextKey ContextKey = "locale"
 
 type LocaleContext struct {
 	Formatter  locale.Formatter
@@ -18,11 +18,14 @@ type LocaleContext struct {
 }
 
 func runLocalized(ctx context.Context, localize func(LocaleContext) string, fallback func() string) string {
-	if l, ok := ctx.Value(LocaleContextKey).(LocaleContext); ok {
-		return localize(l)
+	l, ok := ctx.Value(LocaleContextKey).(LocaleContext)
+	if !ok {
+		log.Warn("view context contains no locale")
+
+		return fallback()
 	}
-	log.Warn("view context contains no locale")
-	return fallback()
+
+	return localize(l)
 }
 
 func localizeDate(ctx context.Context, d time.Time) string {

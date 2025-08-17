@@ -11,9 +11,11 @@ func clientError(w http.ResponseWriter, r *http.Request, statusCode int, message
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Add("HX-Reswap", "afterbegin")
 		w.WriteHeader(statusCode)
+
 		return view.ClientErrorNotify(messageID, data)
-	} else {
-		w.WriteHeader(statusCode)
-		return view.ClientError(messageID, data)
 	}
+
+	w.WriteHeader(statusCode)
+
+	return view.ClientError(messageID, data)
 }

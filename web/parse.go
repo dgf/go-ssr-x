@@ -11,13 +11,15 @@ func parseDate(date string) time.Time {
 	if err != nil {
 		return time.Time{}
 	}
+
 	return t
 }
 
 func param2IntOrDefault(query url.Values, key string, defaultValue int) int {
-	if value, err := strconv.Atoi(query.Get(key)); err != nil {
+	value, err := strconv.Atoi(query.Get(key))
+	if err != nil {
 		return defaultValue
-	} else {
-		return value
 	}
+
+	return value
 }

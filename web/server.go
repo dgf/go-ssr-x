@@ -1,3 +1,4 @@
+// Package web provides a web server that can serve tasks from a storage.
 package web
 
 import (
@@ -34,7 +35,7 @@ func Serve(addr string, storage entity.Storage) error {
 
 	s.mux.Handle("/assets/", http.FileServer(http.FS(assets)))
 	s.mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(200) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
+		w.WriteHeader(http.StatusOK) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
 	})
 
 	return s.serve()
@@ -42,14 +43,18 @@ func Serve(addr string, storage entity.Storage) error {
 
 func acceptLanguageOrDefault(r *http.Request) language.Tag {
 	accept := r.Header.Get("Accept-Language")
-	if tags, _, err := language.ParseAcceptLanguage(accept); err != nil {
+	tags, _, err := language.ParseAcceptLanguage(accept)
+	if err != nil {
 		log.Info("accept language header parse failed", "header", accept)
+
 		return language.English
-	} else if len(tags) == 0 {
-		return language.English
-	} else {
-		return tags[0]
 	}
+
+	if len(tags) == 0 {
+		return language.English
+	}
+
+	return tags[0]
 }
 
 func (s *server) route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
@@ -66,7 +71,9 @@ func (s *server) route(pattern string, handler func(http.ResponseWriter, *http.R
 		if r.Header.Get("HX-Request") != "true" {
 			component = view.Page(component)
 		}
-		if err := component.Render(ctx, w); err != nil {
+
+		err := component.Render(ctx, w)
+		if err != nil {
 			log.Error("component rendering failed", err)
 		}
 	})
@@ -109,7 +116,8 @@ func (s *server) serve() error {
 			panic("don't panic!")
 		}
 
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
+
 		return view.ClientError("not_found_path", map[string]string{"method": r.Method, "path": r.URL.Path})
 	})
 

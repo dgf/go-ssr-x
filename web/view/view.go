@@ -16,18 +16,22 @@ func date(d time.Time) string {
 	if !d.IsZero() {
 		return d.Format(time.DateOnly)
 	}
+
 	return ""
 }
 
 func markdown(md string) templ.Component {
 	var buf bytes.Buffer
-	if err := goldmark.Convert([]byte(md), &buf); err != nil {
+	err := goldmark.Convert([]byte(md), &buf)
+	if err != nil {
 		log.Warn(fmt.Sprintf("failed to convert markdown to HTML: %v", err))
+
 		return templ.NopComponent
 	}
 
-	return templ.ComponentFunc(func(_ context.Context, w io.Writer) (err error) {
-		_, err = io.WriteString(w, buf.String())
-		return
+	return templ.ComponentFunc(func(_ context.Context, w io.Writer) error {
+		_, err := io.WriteString(w, buf.String())
+
+		return err
 	})
 }
