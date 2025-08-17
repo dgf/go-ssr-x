@@ -3,11 +3,15 @@ web/assets/js/htmx.min.js
 web/assets/js/hyperscript.min.js
 web/assets/js/remove-me.js
 web/assets/js/response-targets.js
+
 locale/active.en.toml
 locale/translate.*.toml
-tmp/
 
+tmp/
 node_modules/
 package-lock.json
 
 *_templ.go
+
+*.log
+*.sqlite
