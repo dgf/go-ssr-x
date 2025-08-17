@@ -1,10 +1,68 @@
+version: "2"
 linters:
   enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - copyloopvar
+    - cyclop
+    - decorder
+    - embeddedstructfieldcheck
     - errcheck
     - errorlint
-    - gosimple
+    - godot
+    - gosec
+    - gosmopolitan
     - govet
+    - iface
+    - importas
+    - inamedparam
     - ineffassign
+    - interfacebloat
+    - intrange
+    # - ireturn
+    - loggercheck
+    - makezero
+    - mirror
+    # - mnd
+    - nestif
+    # - nonamedreturns
+    - nosprintfhostport
+    - perfsprint
+    - prealloc
+    - predeclared
+    - reassign
+    - recvcheck
+    - revive
+    - sloglint
+    - sqlclosecheck
     - staticcheck
-    - typecheck
+    - tagalign
+    - testpackage
+    - thelper
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - usetesting
     - unused
+    - wastedassign
+    - whitespace
+    # - wrapcheck
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
