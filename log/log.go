@@ -1,3 +1,4 @@
+// Package log wraps the concrete logger implementation (currently slog).
 package log
 
 import (
