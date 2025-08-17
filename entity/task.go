@@ -68,5 +68,6 @@ func TaskSortOrDefault(sort string) TaskSort {
 	if o == -1 {
 		return TaskSortDefault
 	}
+
 	return TaskSort(o)
 }

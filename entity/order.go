@@ -24,5 +24,6 @@ func SortOrderOrDefault(sortOrder string) SortOrder {
 	if o == -1 {
 		return DefaultSortOrder
 	}
+
 	return SortOrder(o)
 }
