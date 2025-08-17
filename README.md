@@ -66,7 +66,7 @@ Configure a server and create a database, e.g. Docker based
 docker run --name task-db -p 5432:5432 \
   -e POSTGRES_USER=task-db-user \
   -e POSTGRES_PASSWORD=my53cr3tpa55w0rd \
-  -d postgres:16-alpine
+  -d postgres:17-alpine
 ```
 
 Access the database
@@ -79,7 +79,7 @@ Install database migration tool and run migrations
 
 ```sh
 go install github.com/pressly/goose/v3/cmd/goose@latest
-goose -dir entity/postgres postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" up
+goose -dir storage/postgres postgres "postgres://task-db-user:my53cr3tpa55w0rd@localhost" up
 ```
 
 ## Features (non functional techy stuff)
