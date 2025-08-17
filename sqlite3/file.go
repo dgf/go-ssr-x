@@ -13,8 +13,6 @@ import (
 	"github.com/dgf/go-ssr-x/log"
 	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
-
-	_ "modernc.org/sqlite"
 )
 
 //go:embed *.sql
@@ -25,15 +23,22 @@ type file struct {
 }
 
 func NewFile(ctx context.Context, dsn string) (entity.Storage, error) {
-	if db, err := sql.Open("sqlite", dsn); err != nil {
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
 		return nil, err
-	} else if migration, err := goose.NewProvider(goose.DialectSQLite3, db, migrations); err != nil {
-		return nil, err
-	} else if _, err := migration.Up(ctx); err != nil {
-		return nil, err
-	} else {
-		return &file{db: db}, nil
 	}
+
+	migration, err := goose.NewProvider(goose.DialectSQLite3, db, migrations)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = migration.Up(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &file{db: db}, nil
 }
 
 func (f *file) Close() error {
@@ -44,47 +49,62 @@ func (f *file) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, er
 	const query = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
-	if _, err := f.db.ExecContext(ctx, query, id, data.DueDate, data.Subject, data.Description); err != nil {
+	_, err := f.db.ExecContext(ctx, query, id, data.DueDate, data.Subject, data.Description)
+	if err != nil {
 		return uuid.Nil, err
 	}
+
 	return id, nil
 }
 
 func (f *file) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const query = "DELETE FROM task WHERE id = $1"
 
-	if result, err := f.db.ExecContext(ctx, query, id); err != nil {
+	result, err := f.db.ExecContext(ctx, query, id)
+	if err != nil {
 		return err
-	} else if rows, err := result.RowsAffected(); err != nil {
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
 		return fmt.Errorf("rows access failed: %w", err)
-	} else if rows != 1 {
+	}
+
+	if rows != 1 {
 		return fmt.Errorf("no row for %s", id)
 	}
+
 	return nil
 }
 
-func (f *file) Task(ctx context.Context, id uuid.UUID) (task entity.Task, found bool, err error) {
-	const query = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
+func (f *file) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
+	const query = "SELECT created_at, due_date, subject, description FROM task WHERE id = $1"
 
+	var task entity.Task
 	row := f.db.QueryRowContext(ctx, query, id)
-	if err := row.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject, &task.Description); err != nil {
+	err := row.Scan(&task.CreatedAt, &task.DueDate, &task.Subject, &task.Description)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return task, false, nil
 		}
+
 		return task, false, err
-	} else {
-		task.Id = id
-		return task, true, nil
 	}
+
+	task.Id = id
+
+	return task, true, nil
 }
 
 func (f *file) TaskCount(ctx context.Context) (int, error) {
 	const query = "SELECT count(*) FROM task"
 
 	var count int
-	if err := f.db.QueryRowContext(ctx, query).Scan(&count); err != nil {
+	err := f.db.QueryRowContext(ctx, query).Scan(&count)
+	if err != nil {
 		return 0, err
 	}
+
 	return count, nil
 }
 
@@ -95,36 +115,50 @@ func (f *file) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPa
 		taskOrderClause(query.Sort, query.Order), query.Size, (query.Page-1)*query.Size)
 	subjectLike := likeArg(query.Filter)
 
-	if tx, err := f.db.BeginTx(ctx, nil); err != nil {
+	tx, err := f.db.BeginTx(ctx, nil)
+	if err != nil {
 		return entity.TaskPage{}, err
-	} else {
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				log.Error("task list query read rollback failed", err)
-			}
-		}()
 	}
+
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Error("task list query read rollback failed", err)
+		}
+	}()
 
 	var results int
-	if count, err := f.TaskCount(ctx); err != nil {
+	count, err := f.TaskCount(ctx)
+	if err != nil {
 		return entity.TaskPage{}, err
-	} else if err := f.db.QueryRowContext(ctx, resultsQuery, subjectLike).Scan(&results); err != nil {
-		return entity.TaskPage{Count: count}, err
-	} else if rows, err := f.db.QueryContext(ctx, rowsQuery, subjectLike); err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
-	} else if tasks, err := scanTaskOverviews(rows); err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
-	} else {
-		return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 	}
+
+	err = f.db.QueryRowContext(ctx, resultsQuery, subjectLike).Scan(&results)
+	if err != nil {
+		return entity.TaskPage{Count: count}, err
+	}
+
+	rows, err := f.db.QueryContext(ctx, rowsQuery, subjectLike)
+	if err != nil {
+		return entity.TaskPage{Count: count, Results: results}, err
+	}
+
+	tasks, err := scanTaskOverviews(rows)
+	if err != nil {
+		return entity.TaskPage{Count: count, Results: results}, err
+	}
+
+	return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 }
 
-func (f *file) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (task entity.Task, found bool, err error) {
+func (f *file) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	const query = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
-	if _, err := f.db.ExecContext(ctx, query, id, data.DueDate, data.Subject, data.Description); err != nil {
+	_, err := f.db.ExecContext(ctx, query, id, data.DueDate, data.Subject, data.Description)
+	if err != nil {
 		return entity.Task{}, false, err
 	}
+
 	return f.Task(ctx, id)
 }
 
@@ -141,6 +175,7 @@ func taskSort(sort entity.TaskSort) string {
 	case entity.TaskSortSubject:
 		return "subject"
 	}
+
 	return "id"
 }
 
@@ -148,6 +183,7 @@ func toSQLOrder(order entity.SortOrder) string {
 	if order == entity.AscendingOrder {
 		return "ASC"
 	}
+
 	return "DESC"
 }
 
@@ -160,9 +196,11 @@ func scanTaskOverviews(rows *sql.Rows) ([]entity.TaskOverview, error) {
 
 	for rows.Next() {
 		var task entity.TaskOverview
-		if err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject); err != nil {
+		err := rows.Scan(&task.Id, &task.CreatedAt, &task.DueDate, &task.Subject)
+		if err != nil {
 			return tasks, err
 		}
+
 		tasks = append(tasks, task)
 	}
 
