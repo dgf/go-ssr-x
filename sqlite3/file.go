@@ -18,11 +18,11 @@ import (
 //go:embed *.sql
 var migrations embed.FS
 
-type file struct {
+type File struct {
 	db *sql.DB
 }
 
-func NewFile(ctx context.Context, dsn string) (entity.Storage, error) {
+func NewFile(ctx context.Context, dsn string) (*File, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
@@ -38,14 +38,14 @@ func NewFile(ctx context.Context, dsn string) (entity.Storage, error) {
 		return nil, err
 	}
 
-	return &file{db: db}, nil
+	return &File{db: db}, nil
 }
 
-func (f *file) Close() error {
+func (f *File) Close() error {
 	return f.db.Close()
 }
 
-func (f *file) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
+func (f *File) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
 	const query = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
@@ -57,7 +57,7 @@ func (f *file) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, er
 	return id, nil
 }
 
-func (f *file) DeleteTask(ctx context.Context, id uuid.UUID) error {
+func (f *File) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const query = "DELETE FROM task WHERE id = $1"
 
 	result, err := f.db.ExecContext(ctx, query, id)
@@ -77,7 +77,7 @@ func (f *file) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (f *file) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
+func (f *File) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
 	const query = "SELECT created_at, due_date, subject, description FROM task WHERE id = $1"
 
 	var task entity.Task
@@ -96,7 +96,7 @@ func (f *file) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error
 	return task, true, nil
 }
 
-func (f *file) TaskCount(ctx context.Context) (int, error) {
+func (f *File) TaskCount(ctx context.Context) (int, error) {
 	const query = "SELECT count(*) FROM task"
 
 	var count int
@@ -108,7 +108,7 @@ func (f *file) TaskCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (f *file) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
+func (f *File) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
 	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
 	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
 	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
@@ -151,7 +151,7 @@ func (f *file) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPa
 	return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 }
 
-func (f *file) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
+func (f *File) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	const query = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
 	_, err := f.db.ExecContext(ctx, query, id, data.DueDate, data.Subject, data.Description)

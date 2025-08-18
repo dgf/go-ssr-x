@@ -4,6 +4,7 @@ package web
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,23 +21,31 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
-type server struct {
-	addr    string
-	storage entity.Storage
+type Server struct {
+	Addr    string
+	Storage entity.Storage
 	mux     *http.ServeMux
 }
 
-func Serve(addr string, storage entity.Storage) error {
-	s := server{
-		addr:    addr,
-		storage: storage,
-		mux:     http.NewServeMux(),
-	}
-
-	s.mux.Handle("/assets/", http.FileServer(http.FS(assets)))
-	s.mux.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
+func NewServer() *Server {
+	m := http.NewServeMux()
+	m.Handle("/assets/", http.FileServer(http.FS(assets)))
+	m.HandleFunc("DELETE /clear", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK) // 204 is currently ignored, see https://github.com/bigskysoftware/htmx/issues/2194
 	})
+
+	return &Server{mux: m}
+}
+
+func (s *Server) Serve() error {
+	if len(s.Addr) == 0 {
+		return errors.New("missing addr config")
+	}
+
+	if s.Storage == nil {
+		// TODO test access too?
+		return errors.New("requires an active storage reference")
+	}
 
 	return s.serve()
 }
@@ -57,12 +66,15 @@ func acceptLanguageOrDefault(r *http.Request) language.Tag {
 	return tags[0]
 }
 
-func (s *server) route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
+func (s *Server) route(pattern string, handler func(http.ResponseWriter, *http.Request) templ.Component) {
 	s.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+		defer cancel()
+
 		lang := acceptLanguageOrDefault(r)
-		ctx := context.WithValue(r.Context(), view.LocaleContextKey, view.LocaleContext{
+		ctx = context.WithValue(ctx, view.LocaleContextKey, view.LocaleContext{
 			Formatter:  locale.RequestFormatter(lang),
 			Translator: locale.RequestTranslator(lang),
 		})
@@ -95,8 +107,8 @@ func panicRecovery(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) serve() error {
-	taskServer := NewTaskServer(s.storage)
+func (s *Server) serve() error {
+	taskServer := NewTaskServer(s.Storage)
 
 	s.route("GET /tasks/new", taskServer.TaskCreateForm)
 	s.route("GET /tasks/rows", taskServer.TaskRows)
@@ -122,7 +134,7 @@ func (s *server) serve() error {
 	})
 
 	return (&http.Server{
-		Addr:         s.addr,
+		Addr:         s.Addr,
 		Handler:      panicRecovery(s.mux),
 		WriteTimeout: 13 * time.Second,
 		ReadTimeout:  17 * time.Second,

@@ -11,23 +11,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type memory struct {
+type Memory struct {
 	sync.RWMutex
 
 	tasks map[uuid.UUID]Task
 }
 
-func NewMemory() Storage {
-	return &memory{
+func NewMemory() *Memory {
+	return &Memory{
 		tasks: map[uuid.UUID]Task{},
 	}
 }
 
-func (m *memory) Close() error {
+func (m *Memory) Close() error {
 	return nil
 }
 
-func (m *memory) AddTask(_ context.Context, data TaskData) (uuid.UUID, error) {
+func (m *Memory) AddTask(_ context.Context, data TaskData) (uuid.UUID, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -43,14 +43,14 @@ func (m *memory) AddTask(_ context.Context, data TaskData) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (m *memory) TaskCount(_ context.Context) (int, error) {
+func (m *Memory) TaskCount(_ context.Context) (int, error) {
 	m.RLock()
 	defer m.RUnlock()
 
 	return len(m.tasks), nil
 }
 
-func (m *memory) Task(_ context.Context, id uuid.UUID) (Task, bool, error) {
+func (m *Memory) Task(_ context.Context, id uuid.UUID) (Task, bool, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -59,7 +59,7 @@ func (m *memory) Task(_ context.Context, id uuid.UUID) (Task, bool, error) {
 	return t, ok, nil
 }
 
-func (m *memory) Tasks(_ context.Context, query TaskQuery) (TaskPage, error) {
+func (m *Memory) Tasks(_ context.Context, query TaskQuery) (TaskPage, error) {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -96,7 +96,7 @@ func (m *memory) Tasks(_ context.Context, query TaskQuery) (TaskPage, error) {
 	return page, nil
 }
 
-func (m *memory) DeleteTask(_ context.Context, id uuid.UUID) error {
+func (m *Memory) DeleteTask(_ context.Context, id uuid.UUID) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -105,7 +105,7 @@ func (m *memory) DeleteTask(_ context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (m *memory) UpdateTask(_ context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
+func (m *Memory) UpdateTask(_ context.Context, id uuid.UUID, data TaskData) (Task, bool, error) {
 	m.Lock()
 	defer m.Unlock()
 

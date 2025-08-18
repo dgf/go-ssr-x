@@ -16,29 +16,13 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type storageType int
-
-type storageConfig struct {
-	storageType storageType
-	connection  string
-}
-
-type serverConfig struct {
-	addr    string
-	storage storageConfig
-}
-
 const (
-	memoryStorage storageType = iota
-	fileStorage
-	databaseStorage
-
 	defaultAddr       = "0.0.0.0:3000"
 	defaultConnStr    = "postgres://task-db-user:my53cr3tpa55w0rd@localhost?sslmode=disable"
 	defaultSqliteFile = ".tasks.sqlite"
 )
 
-func parseFlags() (serverConfig, error) {
+func parseFlags(ctx context.Context, server *web.Server) error {
 	var addr, connStr, storage string
 
 	flag.StringVar(&addr, "address", defaultAddr, "web server address")
@@ -46,54 +30,47 @@ func parseFlags() (serverConfig, error) {
 	flag.StringVar(&connStr, "connection", defaultConnStr, "database connection string")
 	flag.Parse()
 
-	config := serverConfig{addr: addr, storage: storageConfig{storageType: memoryStorage, connection: connStr}}
-
 	if !slices.Contains([]string{"memory", "file", "database"}, storage) {
 		flag.Usage()
 
-		return config, fmt.Errorf("unknown storage type: %s", storage)
+		return fmt.Errorf("unknown storage type: %s", storage)
 	}
+
+	server.Addr = addr
 
 	switch storage {
 	case "database":
-		config.storage.storageType = databaseStorage
+		{
+			database, err := postgres.NewDatabase(ctx, connStr)
+			if err != nil {
+				return err
+			}
+
+			server.Storage = database
+		}
 	case "file":
-		config.storage.storageType = fileStorage
-		if connStr == defaultConnStr {
-			config.storage.connection = defaultSqliteFile
+		{
+			if connStr == defaultConnStr {
+				connStr = defaultSqliteFile
+			}
+			log.Info("use file storage", "path", connStr)
+
+			file, err := sqlite3.NewFile(ctx, connStr)
+			if err != nil {
+				return err
+			}
+
+			server.Storage = file
+		}
+	default:
+		{
+			log.Warn("running with in-memory storage, the data will be lost when restarting")
+
+			server.Storage = entity.NewMemory()
 		}
 	}
 
-	return config, nil
-}
-
-func createMemoryStorage() (entity.Storage, error) {
-	log.Warn("running with in-memory storage, the data will be lost when restarting")
-
-	return entity.NewMemory(), nil
-}
-
-func createDatabaseStorage(ctx context.Context, connStr string) (entity.Storage, error) {
-	return postgres.NewDatabase(ctx, connStr)
-}
-
-func createFileStorage(ctx context.Context, path string) (entity.Storage, error) {
-	log.Info("use file storage", "path", path)
-
-	return sqlite3.NewFile(ctx, path)
-}
-
-func createStorage(ctx context.Context, config serverConfig) (entity.Storage, error) {
-	switch config.storage.storageType {
-	case memoryStorage:
-		return createMemoryStorage()
-	case databaseStorage:
-		return createDatabaseStorage(ctx, config.storage.connection)
-	case fileStorage:
-		return createFileStorage(ctx, config.storage.connection)
-	}
-
-	return nil, fmt.Errorf("unknown storage type: %d", config.storage.storageType)
+	return nil
 }
 
 func initStorage(ctx context.Context, storage entity.Storage) error {
@@ -122,22 +99,18 @@ func initStorage(ctx context.Context, storage entity.Storage) error {
 func main() {
 	ctx := context.Background()
 
-	config, err := parseFlags()
+	server := web.NewServer()
+	err := parseFlags(ctx, server)
 	if err != nil {
 		panic(err)
 	}
 
-	storage, err := createStorage(ctx, config)
+	err = initStorage(ctx, server.Storage)
 	if err != nil {
 		panic(err)
 	}
+	defer server.Storage.Close()
 
-	err = initStorage(ctx, storage)
-	if err != nil {
-		panic(err)
-	}
-	defer storage.Close()
-
-	log.Info("Listening on " + config.addr)
-	log.Error("listen and serve failed", web.Serve(config.addr, storage))
+	log.Info("Listening on " + server.Addr)
+	log.Error("listen and serve failed", server.Serve())
 }

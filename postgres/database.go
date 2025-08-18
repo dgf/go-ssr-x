@@ -14,26 +14,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type database struct {
+type Database struct {
 	db *pgxpool.Pool
 }
 
-func NewDatabase(ctx context.Context, connStr string) (entity.Storage, error) {
+func NewDatabase(ctx context.Context, connStr string) (*Database, error) {
 	dbpool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &database{db: dbpool}, nil
+	return &Database{db: dbpool}, nil
 }
 
-func (d *database) Close() error {
+func (d *Database) Close() error {
 	d.db.Close()
 
 	return nil
 }
 
-func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
+func (d *Database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID, error) {
 	const sql = "INSERT INTO task (id, due_date, subject, description) VALUES ($1, $2, $3, $4)"
 
 	id := uuid.New()
@@ -45,7 +45,7 @@ func (d *database) AddTask(ctx context.Context, data entity.TaskData) (uuid.UUID
 	return id, nil
 }
 
-func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
+func (d *Database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const sql = "DELETE FROM task WHERE id = $1"
 
 	tag, err := d.db.Exec(ctx, sql, id)
@@ -60,7 +60,7 @@ func (d *database) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (d *database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
+func (d *Database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, error) {
 	const sql = "SELECT id, created_at, due_date, subject, description FROM task WHERE id = $1"
 
 	rows, err := d.db.Query(ctx, sql, id)
@@ -80,7 +80,7 @@ func (d *database) Task(ctx context.Context, id uuid.UUID) (entity.Task, bool, e
 	return task, true, nil
 }
 
-func (d *database) TaskCount(ctx context.Context) (int, error) {
+func (d *Database) TaskCount(ctx context.Context) (int, error) {
 	const sql = "SELECT count(*) FROM task"
 
 	var count int
@@ -92,7 +92,7 @@ func (d *database) TaskCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
+func (d *Database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
 	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
 	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
 	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
@@ -135,7 +135,7 @@ func (d *database) Tasks(ctx context.Context, query entity.TaskQuery) (entity.Ta
 	return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
 }
 
-func (d *database) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
+func (d *Database) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
 	const sql = "UPDATE task SET (due_date, subject, description) = ($2, $3, $4) WHERE id = $1"
 
 	tag, err := d.db.Exec(ctx, sql, id, data.DueDate, data.Subject, data.Description)
