@@ -17,11 +17,6 @@ var bundle *i18n.Bundle
 
 var messageByID map[string]*i18n.Message
 
-type Translator interface {
-	Translate(messageID string) string
-	TranslateData(messageID string, data map[string]string) string
-}
-
 type translator struct {
 	localizer *i18n.Localizer
 }
@@ -76,13 +71,13 @@ func init() {
 	}
 }
 
-func RequestTranslator(lang language.Tag) Translator {
+func refTranslator(lang language.Tag) *translator {
 	return &translator{
 		localizer: i18n.NewLocalizer(bundle, lang.String()),
 	}
 }
 
-func (m *translator) Translate(messageID string) string {
+func (m *translator) translate(messageID string) string {
 	message, ok := messageByID[messageID]
 	if !ok {
 		log.Warn("unknown translation message", "messageID", messageID)
@@ -100,7 +95,7 @@ func (m *translator) Translate(messageID string) string {
 	return translation
 }
 
-func (m *translator) TranslateData(messageID string, data map[string]string) string {
+func (m *translator) translateData(messageID string, data map[string]string) string {
 	message, ok := messageByID[messageID]
 	if !ok {
 		log.Warn("unknown translation message", "messageID", messageID)

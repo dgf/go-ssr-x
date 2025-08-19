@@ -2,7 +2,6 @@
 package web
 
 import (
-	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -70,16 +69,11 @@ func (s *Server) route(pattern string, handler func(http.ResponseWriter, *http.R
 	s.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-		defer cancel()
 
 		lang := acceptLanguageOrDefault(r)
-		ctx = context.WithValue(ctx, view.LocaleContextKey, view.LocaleContext{
-			Formatter:  locale.RequestFormatter(lang),
-			Translator: locale.RequestTranslator(lang),
-		})
+		ctx := locale.WithLocale(r.Context(), lang)
 
-		component := handler(w, r)
+		component := handler(w, r.WithContext(ctx))
 		if r.Header.Get("HX-Request") != "true" {
 			component = view.Page(component)
 		}

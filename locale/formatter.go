@@ -6,11 +6,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-type Formatter interface {
-	FormatDate(d time.Time) string
-	FormatDateTime(dt time.Time) string
-}
-
 type formatter struct {
 	formatDate     func(d time.Time) string
 	formatDateTime func(dt time.Time) string
@@ -43,7 +38,7 @@ var defaultFormatter = &formatter{
 	},
 }
 
-func RequestFormatter(lang language.Tag) Formatter {
+func refFormatter(lang language.Tag) *formatter {
 	switch lang {
 	case language.German:
 		return germanFormatter
@@ -52,12 +47,4 @@ func RequestFormatter(lang language.Tag) Formatter {
 	default:
 		return defaultFormatter
 	}
-}
-
-func (f *formatter) FormatDate(d time.Time) string {
-	return f.formatDate(d)
-}
-
-func (f *formatter) FormatDateTime(dt time.Time) string {
-	return f.formatDateTime(dt)
 }
