@@ -109,6 +109,8 @@ func (f *File) TaskCount(ctx context.Context) (int, error) {
 }
 
 func (f *File) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPage, error) {
+	page := entity.TaskPage{Start: (query.Page - 1) * query.Size}
+
 	const resultsQuery = "SELECT count(*) FROM task WHERE subject LIKE $1"
 	const rowSelectQuery = "SELECT id, created_at, due_date, subject FROM task WHERE subject LIKE $1"
 	rowsQuery := fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", rowSelectQuery,
@@ -127,28 +129,35 @@ func (f *File) Tasks(ctx context.Context, query entity.TaskQuery) (entity.TaskPa
 		}
 	}()
 
-	var results int
 	count, err := f.TaskCount(ctx)
 	if err != nil {
-		return entity.TaskPage{}, err
+		return page, err
+	}
+	page.Count = count
+
+	if page.Start > count {
+		return page, nil
 	}
 
+	var results int
 	err = f.db.QueryRowContext(ctx, resultsQuery, subjectLike).Scan(&results)
 	if err != nil {
-		return entity.TaskPage{Count: count}, err
+		return page, err
 	}
+	page.Results = results
 
 	rows, err := f.db.QueryContext(ctx, rowsQuery, subjectLike)
 	if err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
+		return page, err
 	}
 
 	tasks, err := scanTaskOverviews(rows)
 	if err != nil {
-		return entity.TaskPage{Count: count, Results: results}, err
+		return page, err
 	}
+	page.Tasks = tasks
 
-	return entity.TaskPage{Count: count, Results: results, Tasks: tasks}, nil
+	return page, nil
 }
 
 func (f *File) UpdateTask(ctx context.Context, id uuid.UUID, data entity.TaskData) (entity.Task, bool, error) {
